@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -34,7 +34,7 @@ export default function AuthenticationPage() {
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setError(null);
     setLoading(true);
-  
+
     try {
       const response = await fetch("http://localhost:8088/api/v1/login", {
         method: "POST",
@@ -43,56 +43,51 @@ export default function AuthenticationPage() {
         },
         body: JSON.stringify(data),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Login failed. Please check your credentials.");
       }
-  
+
       const token = await response.text(); // Read response as plain text
       localStorage.setItem("jwt", token);
-      router.push("/sessions");
+      router.push("/session");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <CardHeader>
-          <h1 className="text-2xl font-semibold text-center">Login</h1>
+          <h1 className="text-2xl font-bold mb-6 text-black text-center">Connexion</h1>
         </CardHeader>
         <CardContent>
-          {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block font-medium mb-2 text-gray-700">Adresse e-mail :</label>
               <Input
                 type="email"
                 {...register("email")}
-                className={`border ${errors.email ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full px-3 py-2 text-gray-700 border ${errors.email ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                placeholder="Entrez votre e-mail"
               />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message as React.ReactNode}</p>
-              )}
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <label className="block font-medium mb-2 text-gray-700">Mot de passe :</label>
               <Input
                 type="password"
                 {...register("password")}
-                className={`border ${errors.password ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full px-3 py-2 text-gray-700 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                placeholder="Entrez votre mot de passe"
               />
-              {errors.password && (
-                <p className="text-sm text-red-600">
-                  {errors.password.message as React.ReactNode}
-                </p>
-              )}
+              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>}
             </div>
 
             <Button
@@ -100,15 +95,13 @@ export default function AuthenticationPage() {
               disabled={loading}
               className={`w-full ${loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Connexion en cours..." : "Connexion"}
             </Button>
           </form>
+          <br></br>
+
+          <a >Mot de passe oublié ?</a>
         </CardContent>
-        {/* <CardFooter>
-          <p className="text-sm text-center text-gray-500">
-            Don’t have an account? <a href="/register" className="text-blue-600 hover:underline">Sign up</a>
-          </p>
-        </CardFooter> */}
       </Card>
     </div>
   );

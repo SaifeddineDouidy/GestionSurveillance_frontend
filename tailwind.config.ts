@@ -10,6 +10,10 @@ export default {
   theme: {
   	extend: {
   		colors: {
+			red: {
+				600: '#dc2626', // Default red-600
+				700: '#b91c1c', // Default red-700
+			  },
   			background: 'var(--background)',
   			foreground: 'var(--foreground)'
   		},
