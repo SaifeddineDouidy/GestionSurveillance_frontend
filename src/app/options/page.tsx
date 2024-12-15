@@ -15,7 +15,8 @@ import { useRouter } from "next/navigation";
 type Option = {
     id: number,
     nomDeFiliere: string,
-    annee: string
+    annee: string,
+    nbrInscrit: number
 };
 
 export default function OptionsPage() {
@@ -25,7 +26,7 @@ export default function OptionsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [optionToDelete, setOptionToDelete] = useState<number | null>(null);
-  const [newOption, setNewOption] = useState({ nomDeFiliere: "", annee: ""});
+  const [newOption, setNewOption] = useState({ nomDeFiliere: "", annee: "",nbrInscrit:0});
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editOption, setEditOption] = useState<Option | null>(null);
 
@@ -35,7 +36,7 @@ export default function OptionsPage() {
   const router = useRouter();
 
   const filteredOptions = options.filter((option) =>
-    [option.nomDeFiliere, option.annee]
+    [option.nomDeFiliere, option.annee, option.nbrInscrit]
       .filter((field) => typeof field === "string") // Exclude null/undefined values
       .map((field) => field.toLowerCase())
       .some((field) => field.includes(searchTerm.toLowerCase()))
@@ -108,7 +109,7 @@ export default function OptionsPage() {
         const addedOption = await response.json();
         setOptions([...options, addedOption]);
         setIsAddModalOpen(false);
-        setNewOption({ nomDeFiliere: "", annee: "" });
+        setNewOption({ nomDeFiliere: "", annee: "" ,nbrInscrit:0});
       } else {
         console.error("Failed to add Option. Response status:", response.status);
       }
@@ -174,6 +175,7 @@ export default function OptionsPage() {
       <tr>
         <th className="px-4 py-2">Nom de filière</th>
         <th className="px-4 py-2">Niveau d'Année</th>
+        <th className="px-4 py-2">Nombre d'étudiant Inscrit</th>
         <th className="px-1 py-2">Actions</th>
       </tr>
     </thead>
@@ -186,6 +188,7 @@ export default function OptionsPage() {
         >
           <td className="px-4 py-2">{option.nomDeFiliere}</td>
           <td className="px-4 py-2">{option.annee}</td>
+          <td className="px-4 py-2">{option.nbrInscrit}</td>
           <td
             className="px-1 py-2"
             onClick={(e) => e.stopPropagation()} // Prevent row click event
@@ -269,6 +272,18 @@ export default function OptionsPage() {
                     className="col-span-3"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="taille" className="text-right">
+                    Nombre d'étudiant Inscrit
+                  </Label>
+                  <Input
+                    id="nbrInscrit"
+                    type="number"
+                    value={editOption.nbrInscrit}
+                    onChange={(e) => setEditOption({ ...editOption, nbrInscrit:parseInt(e.target.value) })}
+                    className="col-span-3"
+                  />
+                </div>
               </div>
             )}
             <DialogFooter>
@@ -311,6 +326,17 @@ export default function OptionsPage() {
                   type="text"
                   value={newOption.annee}
                   onChange={(e) => setNewOption({ ...newOption, annee: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="nom" className="text-right">
+                  Nom Filière
+                </Label>
+                <Input
+                  id="nbrInscrit"
+                  value={newOption.nbrInscrit}
+                  onChange={(e) => setNewOption({ ...newOption, nbrInscrit: parseInt(e.target.value) })}
                   className="col-span-3"
                 />
               </div>

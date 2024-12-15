@@ -1,19 +1,19 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import Navbar from "@/components/Navbar";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,29 +34,35 @@ export default function LocauxPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [localToDelete, setLocalToDelete] = useState<number | null>(null);
-  const [newLocal, setNewLocal] = useState({ nom: "", taille: 0, type: "Salle" });
+  const [newLocal, setNewLocal] = useState({
+    nom: "",
+    taille: 0,
+    type: "Salle",
+  });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editLocal, setEditLocal] = useState<Local | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
 
   // Fetch locaux from backend using Fetch API
   useEffect(() => {
     async function fetchLocaux() {
       try {
         const response = await fetch("http://localhost:8088/api/locaux", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
         if (response.ok) {
           const data: Local[] = await response.json();
           setLocaux(data);
         } else {
-          console.error("Failed to fetch locaux. Response status:", response.status);
+          console.error(
+            "Failed to fetch locaux. Response status:",
+            response.status
+          );
         }
       } catch (error) {
         console.error("Failed to fetch locaux:", error);
@@ -82,20 +88,26 @@ export default function LocauxPage() {
     setLocalToDelete(null);
     setIsDeleteModalOpen(false);
   };
-  
+
   // Handle delete session
   const handleDeleteSession = async () => {
     if (localToDelete === null) return;
     try {
-      const response = await fetch(`http://localhost:8088/api/locaux/${localToDelete}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8088/api/locaux/${localToDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         setLocaux(locaux.filter((local) => local.id !== localToDelete));
         closeDeleteModal();
       } else {
-        console.error("Failed to delete session. Response status:", response.status);
+        console.error(
+          "Failed to delete session. Response status:",
+          response.status
+        );
       }
     } catch (error) {
       console.error("Error deleting session:", error);
@@ -128,24 +140,32 @@ export default function LocauxPage() {
   // Handle edit local
   const handleEditLocal = async () => {
     if (!editLocal) return;
-  
+
     try {
-      const response = await fetch(`http://localhost:8088/api/locaux/${editLocal.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editLocal),
-      });
+      const response = await fetch(
+        `http://localhost:8088/api/locaux/${editLocal.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editLocal),
+        }
+      );
       if (response.ok) {
         const updatedLocal = await response.json();
         setLocaux(
-          locaux.map((local) => (local.id === updatedLocal.id ? updatedLocal : local))
+          locaux.map((local) =>
+            local.id === updatedLocal.id ? updatedLocal : local
+          )
         );
         setIsEditModalOpen(false);
         setEditLocal(null);
       } else {
-        console.error("Failed to edit local. Response status:", response.status);
+        console.error(
+          "Failed to edit local. Response status:",
+          response.status
+        );
       }
     } catch (error) {
       console.error("Error editing local:", error);
@@ -158,7 +178,6 @@ export default function LocauxPage() {
       if (response.ok) {
         const locauxData = await response.json(); // Assuming the API returns a JSON array of locaux
         setLocaux(locauxData); // Update state with the fetched locaux
-
       } else {
         console.error("Failed to fetch locaux:", response.status);
         alert("Erreur lors de la récupération des locaux.");
@@ -168,7 +187,6 @@ export default function LocauxPage() {
       alert("Erreur réseau lors de la récupération des locaux.");
     }
   };
-  
 
   // Add file upload handler
   const handleFileUpload = async () => {
@@ -176,22 +194,22 @@ export default function LocauxPage() {
       alert("Veuillez sélectionner un fichier");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("file", uploadFile);
-  
+
     try {
       const response = await fetch("http://localhost:8088/api/locaux/upload", {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         const responseData = await response.text();
         console.log("Upload succeeded:", responseData);
         alert("Fichier téléchargé avec succès!");
         await refetchLocaux();
-  
+
         // Reset state or close modal if necessary
         setUploadFile(null);
         setIsUploadModalOpen(false);
@@ -205,68 +223,88 @@ export default function LocauxPage() {
       alert("Erreur réseau lors de l'importation du fichier");
     }
   };
-  
-  
 
   return (
     <div className="bg-gray-100 p-8">
-      <Navbar/>
+      <Navbar />
       <div className="mt-4 p-10">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Locaux ({filteredLocaux.length})</h1>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">
+              Locaux ({filteredLocaux.length})
+            </h1>
+            <Link
+              href="/session"
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ← Back to Session
+            </Link>
+          </div>
           <div className="flex items-center space-x-4">
             {/* File Upload Dialog */}
-            <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="blue" onClick={() => setIsUploadModalOpen(true)}>
-                          Choisir un fichier (.xls ou .csv)
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Importer des locaux</DialogTitle>
-                          <DialogDescription>
-                            Sélectionnez un fichier .xls ou .csv pour importer des locaux
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="file" className="text-right">
-                              Fichier
-                            </Label>
-                            <Input 
-                              id="file" 
-                              type="file" 
-                              accept=".xls,.csv" 
-                              className="col-span-3"
-                              onChange={(e) => {
-                                const files = e.target.files;
-                                if (files && files.length > 0) {
-                                  setUploadFile(files[0]);
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button type="button" variant="secondary" onClick={() => {
-                              setUploadFile(null);
-                              setIsUploadModalOpen(false);
-                            }}>
-                              Annuler
-                            </Button>
-                          </DialogClose>
-                          <Button 
-                            type="button" variant="blue"
-                            onClick={handleFileUpload}
-                            disabled={!uploadFile}
-                          >
-                            Importer
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+            <Dialog
+              open={isUploadModalOpen}
+              onOpenChange={setIsUploadModalOpen}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="blue"
+                  onClick={() => setIsUploadModalOpen(true)}
+                >
+                  Choisir un fichier (.xls ou .csv)
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Importer des locaux</DialogTitle>
+                  <DialogDescription>
+                    Sélectionnez un fichier .xls ou .csv pour importer des
+                    locaux
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="file" className="text-right">
+                      Fichier
+                    </Label>
+                    <Input
+                      id="file"
+                      type="file"
+                      accept=".xls,.csv"
+                      className="col-span-3"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                          setUploadFile(files[0]);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setUploadFile(null);
+                        setIsUploadModalOpen(false);
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    type="button"
+                    variant="blue"
+                    onClick={handleFileUpload}
+                    disabled={!uploadFile}
+                  >
+                    Importer
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Existing Add Local Button */}
             <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
@@ -299,36 +337,34 @@ export default function LocauxPage() {
               </tr>
             </thead>
             <tbody>
-  {filteredLocaux.map((local) => (
-    <tr key={local.id} className="bg-white">
-      <td className="px-4 py-2">{local.nom}</td>
-      <td className="px-4 py-2">{local.taille}</td>
-      <td className="px-4 py-2">{local.type}</td>
-      <td className="px-1 py-2">
-      <button
-  className="text-blue-500 hover:text-blue-700 mr-2"
-  onClick={() => {
-    setEditLocal(local); // Pre-fill the modal with selected local's data
-    setIsEditModalOpen(true); // Open the modal
-  }}
->
-  <FontAwesomeIcon icon={faEdit} />
-</button>
+              {filteredLocaux.map((local) => (
+                <tr key={local.id} className="bg-white">
+                  <td className="px-4 py-2">{local.nom}</td>
+                  <td className="px-4 py-2">{local.taille}</td>
+                  <td className="px-4 py-2">{local.type}</td>
+                  <td className="px-1 py-2">
+                    <button
+                      className="text-blue-500 hover:text-blue-700 mr-2"
+                      onClick={() => {
+                        setEditLocal(local); // Pre-fill the modal with selected local's data
+                        setIsEditModalOpen(true); // Open the modal
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faEdit} />
+                    </button>
 
-        <button
-          className="text-red-500 hover:text-red-700"
-          onClick={() => openDeleteModal(local.id)}
-        >
-          <FontAwesomeIcon icon={faTrash} />
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => openDeleteModal(local.id)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
-      
 
         {/* Delete Modal using Shadcn Dialog */}
         <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
@@ -336,7 +372,8 @@ export default function LocauxPage() {
             <DialogHeader>
               <DialogTitle>Êtes-vous sûr ?</DialogTitle>
               <DialogDescription>
-                Voulez-vous vraiment supprimer cette session ? Cette action est irréversible.
+                Voulez-vous vraiment supprimer cette session ? Cette action est
+                irréversible.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -345,9 +382,9 @@ export default function LocauxPage() {
                   Annuler
                 </Button>
               </DialogClose>
-              <Button 
-                type="button" 
-                variant="destructive" 
+              <Button
+                type="button"
+                variant="destructive"
                 onClick={handleDeleteSession}
               >
                 Supprimer
@@ -371,7 +408,9 @@ export default function LocauxPage() {
                   <Input
                     id="nom"
                     value={editLocal.nom}
-                    onChange={(e) => setEditLocal({ ...editLocal, nom: e.target.value })}
+                    onChange={(e) =>
+                      setEditLocal({ ...editLocal, nom: e.target.value })
+                    }
                     className="col-span-3"
                   />
                 </div>
@@ -383,15 +422,22 @@ export default function LocauxPage() {
                     id="taille"
                     type="number"
                     value={editLocal.taille}
-                    onChange={(e) => setEditLocal({ ...editLocal, taille: parseInt(e.target.value, 10) })}
+                    onChange={(e) =>
+                      setEditLocal({
+                        ...editLocal,
+                        taille: parseInt(e.target.value, 10),
+                      })
+                    }
                     className="col-span-3"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right">Type</Label>
-                  <RadioGroup 
-                    value={editLocal.type} 
-                    onValueChange={(value) => setEditLocal({ ...editLocal, type: value })}
+                  <RadioGroup
+                    value={editLocal.type}
+                    onValueChange={(value) =>
+                      setEditLocal({ ...editLocal, type: value })
+                    }
                     className="col-span-3 flex space-x-4"
                   >
                     <div className="flex items-center space-x-2">
@@ -433,7 +479,9 @@ export default function LocauxPage() {
                 <Input
                   id="nom"
                   value={newLocal.nom}
-                  onChange={(e) => setNewLocal({ ...newLocal, nom: e.target.value })}
+                  onChange={(e) =>
+                    setNewLocal({ ...newLocal, nom: e.target.value })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -445,15 +493,22 @@ export default function LocauxPage() {
                   id="taille"
                   type="number"
                   value={newLocal.taille}
-                  onChange={(e) => setNewLocal({ ...newLocal, taille: parseInt(e.target.value, 10) })}
+                  onChange={(e) =>
+                    setNewLocal({
+                      ...newLocal,
+                      taille: parseInt(e.target.value, 10),
+                    })
+                  }
                   className="col-span-3"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Type</Label>
-                <RadioGroup 
-                  value={newLocal.type} 
-                  onValueChange={(value) => setNewLocal({ ...newLocal, type: value })}
+                <RadioGroup
+                  value={newLocal.type}
+                  onValueChange={(value) =>
+                    setNewLocal({ ...newLocal, type: value })
+                  }
                   className="col-span-3 flex space-x-4"
                 >
                   <div className="flex items-center space-x-2">
