@@ -85,7 +85,7 @@ export default function SessionPage() {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setNewSession({ type: "", startDate: "", endDate: "" });
+    setNewSession({ type: "", startDate: "", endDate: ""});
   };
 
   const openEditModal = (session: Session) => {

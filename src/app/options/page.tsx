@@ -149,7 +149,7 @@ export default function OptionsPage() {
     return (
         <div className="bg-gray-100 p-8">
             <Navbar />
-            <div className="mt-4 p-10">
+            <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-2xl font-bold">Options ({filteredOptions.length})</h1>
                     <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
@@ -331,10 +331,11 @@ export default function OptionsPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="nom" className="text-right">
-                  Nom Filière
+                Nombre d'étudiant Inscrit
                 </Label>
                 <Input
                   id="nbrInscrit"
+                  type="number"
                   value={newOption.nbrInscrit}
                   onChange={(e) => setNewOption({ ...newOption, nbrInscrit: parseInt(e.target.value) })}
                   className="col-span-3"
