@@ -12,22 +12,36 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRouter } from "next/navigation";
 
-type Option = {
-    id: number,
-    nomDeFiliere: string,
-    annee: string,
-    nbrInscrit: number
-};
+interface Department {
+  id: number;
+  departmentName: string;
+}
+
+interface Option {
+  id:number,
+  nomDeFiliere: string;
+  annee: string;
+  nbrInscrit: number;
+  departement: Department;
+}
 
 export default function OptionsPage() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [department, setDepartment] = useState<Department>();
+
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [optionToDelete, setOptionToDelete] = useState<number | null>(null);
-  const [newOption, setNewOption] = useState({ nomDeFiliere: "", annee: "",nbrInscrit:0});
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [newOption, setNewOption] = useState({
+    nomDeFiliere: "",
+    annee: "",
+    nbrInscrit: 0,
+    departement: { id: 0 }, // Change departmentId to { id: 0 }
+  });  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editOption, setEditOption] = useState<Option | null>(null);
 
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -43,27 +57,27 @@ export default function OptionsPage() {
   );
 
   useEffect(() => {
-    async function fetchOptions() {
+    async function fetchData() {
       try {
-        const response = await fetch("http://localhost:8088/api/options", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          
-        if (response.ok) {
-          const data: Option[] = await response.json();
-          console.log(data)
-          setOptions(data);
-        } else {
-          console.error("Failed to fetch Options. Response status:", response.status);
+        const optionsResponse = await fetch("http://localhost:8088/api/options");
+        const departmentsResponse = await fetch("http://localhost:8088/api/departements");
+
+        if (optionsResponse.ok) {
+          const optionsData: Option[] = await optionsResponse.json();
+          setOptions(optionsData);
+        }
+
+        if (departmentsResponse.ok) {
+          const departmentsData: Department[] = await departmentsResponse.json();
+          console.log(departmentsData)
+          setDepartments(departmentsData);
         }
       } catch (error) {
-        console.error("Failed to fetch Options:", error);
+        console.error("Error fetching data:", error);
       }
     }
-    fetchOptions();
+
+    fetchData();
   }, []);
 
   const openDeleteModal = (id: number) => {
@@ -97,6 +111,7 @@ export default function OptionsPage() {
 
   // Handle add Option
   const handleAddOption = async () => {
+    console.log(newOption)
     try {
       const response = await fetch("http://localhost:8088/api/options", {
         method: "POST",
@@ -109,7 +124,7 @@ export default function OptionsPage() {
         const addedOption = await response.json();
         setOptions([...options, addedOption]);
         setIsAddModalOpen(false);
-        setNewOption({ nomDeFiliere: "", annee: "" ,nbrInscrit:0});
+        setNewOption({ nomDeFiliere: "", annee: "" ,nbrInscrit:0,departement: { id: 0 }});
       } else {
         console.error("Failed to add Option. Response status:", response.status);
       }
@@ -249,6 +264,30 @@ export default function OptionsPage() {
             </DialogHeader>
             {editOption && (
               <div className="grid gap-4 py-4">
+<div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="departmentId" className="text-right">
+    Département
+  </Label>
+  <select
+    id="departmentId"
+    value={editOption?.departement.id || 0}
+    onChange={(e) => setEditOption({ ...editOption, departement: {
+      id: +e.target.value,
+      departmentName: ""
+    } })}
+    className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+  >
+    <option value={0} disabled>
+      Sélectionner un département
+    </option>
+    {departments.map((department) => (
+      <option key={department.id} value={department.id}>
+        {department.departmentName}
+      </option>
+    ))}
+  </select>
+</div>
+
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="nom" className="text-right">
                     Nom Filière
@@ -300,14 +339,36 @@ export default function OptionsPage() {
         </Dialog>
 
         {/* Add Modal using Shadcn Dialog */}
+        {/* Add Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Ajouter une Option</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="departmentId" className="text-right">
+    Département
+  </Label>
+  <select
+    id="departmentId"
+    value={newOption.departement.id}
+    onChange={(e) => setNewOption({ ...newOption, departement: { id: +e.target.value }  })}
+    className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+  >
+    <option value={0} disabled>
+      Sélectionner un département
+    </option>
+    {departments.map((department) => (
+      <option key={department.id} value={department.id}>
+        {department.departmentName}
+      </option>
+    ))}
+  </select>
+</div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="nom" className="text-right">
+                <Label htmlFor="nomDeFiliere" className="text-right">
                   Nom Filière
                 </Label>
                 <Input
@@ -318,7 +379,7 @@ export default function OptionsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="taille" className="text-right">
+                <Label htmlFor="annee" className="text-right">
                   Niveau d'année
                 </Label>
                 <Input
@@ -330,17 +391,17 @@ export default function OptionsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="nom" className="text-right">
-                  Nom Filière
+                <Label htmlFor="nbrInscrit" className="text-right">
+                  Nombre d'étudiants Inscrits
                 </Label>
                 <Input
                   id="nbrInscrit"
+                  type="number"
                   value={newOption.nbrInscrit}
                   onChange={(e) => setNewOption({ ...newOption, nbrInscrit: parseInt(e.target.value) })}
                   className="col-span-3"
                 />
               </div>
-              
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -349,7 +410,7 @@ export default function OptionsPage() {
                 </Button>
               </DialogClose>
               <Button variant="blue" onClick={handleAddOption}>
-                Créer
+                Enregistrer
               </Button>
             </DialogFooter>
           </DialogContent>

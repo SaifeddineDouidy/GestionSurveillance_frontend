@@ -85,7 +85,18 @@ export default function SessionPage() {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setNewSession({ type: "", startDate: "", endDate: "" });
+    setNewSession({ type: "",
+      startDate: "",
+      endDate: "",
+      isValid: "false",
+      morningStart1: "08:00",
+      morningEnd1: "10:00",
+      morningStart2: "10:00",
+      morningEnd2: "12:00",
+      afternoonStart1: "14:00",
+      afternoonEnd1: "16:00",
+      afternoonStart2: "16:00",
+      afternoonEnd2: "18:00", });
   };
 
   const openEditModal = (session: Session) => {
@@ -106,6 +117,15 @@ export default function SessionPage() {
   const closeDeleteModal = () => {
     setSessionToDelete(null);
     setIsDeleteModalOpen(false);
+  };
+
+  const handleSessionClick = (session: Session) => {
+    if (!session.isValid) {
+      // Store the session in localStorage
+      localStorage.setItem('sessionId', JSON.stringify(session.id));
+      // Navigate to dashboard
+      router.push(`/dashboard?sessionId=${session.id}`);
+    }
   };
 
   // Fetch sessions from backend
@@ -218,7 +238,7 @@ export default function SessionPage() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setNewSession((prevSession) => ({
       ...prevSession,
@@ -499,15 +519,11 @@ export default function SessionPage() {
     <tr
       key={session.id}
       className={`border-b cursor-pointer ${
-        session.valid
+        session.isValid
           ? "bg-gray-200 text-gray-500" // Disabled row styling
           : "bg-white hover:bg-gray-100"
       }`}
-      onClick={() => {
-        if (!session.valid) {
-          router.push(`/dashboard?sessionId=${session.id}`);
-        }
-      }}
+      onClick={() => handleSessionClick(session)}
     >
       <td className="px-4 py-2">{session.type}</td>
       <td className="px-4 py-2">{session.startDate}</td>
@@ -518,13 +534,13 @@ export default function SessionPage() {
           <FaEdit
             size={16}
             className={`${
-              session.valid
+              session.isValid
                 ? "text-blue-300 cursor-not-allowed"
                 : "text-blue-500 hover:text-blue-700 cursor-pointer"
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (!session.valid) openEditModal(session);
+              if (!session.isValid) openEditModal(session);
             }}
           />
 
@@ -532,18 +548,18 @@ export default function SessionPage() {
           <FaTrash
             size={16}
             className={`${
-              session.valid
+              session.isValid
                 ? "text-red-300 cursor-not-allowed"
                 : "text-red-500 hover:text-red-700 cursor-pointer"
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (!session.valid) openDeleteModal(session.id);
+              if (!session.isValid) openDeleteModal(session.id);
             }}
           />
 
           {/* Validation Toggle */}
-          {session.valid ? (
+          {session.isValid ? (
             <div className="flex items-center">
               <FaCheckCircle
                 size={16}
