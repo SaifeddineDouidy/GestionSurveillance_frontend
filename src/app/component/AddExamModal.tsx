@@ -1,69 +1,202 @@
-"use client"
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-
 import axios from "axios";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogClose,
-  } from "@/components/ui/dialog"; 
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; 
-import { Checkbox } from "@/components/ui/checkbox"; 
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import Select from "react-select";
+import { format, parseISO } from "date-fns";
 
-const AddExamModal = ({ showExamModal, setShowExamModal }) => {
-  const [departements, setDepartements] = useState([]);
-  const [enseignants, setEnseignants] = useState([]);
-  const [options, setOptions] = useState([]);
-  const [modules, setModules] = useState([]);
-  const [newSession, setNewSession] = useState({
-    departement: "",
-    enseignant: "",
-    option: "",
-    module: "",
-    isManuelle: false,
-    locaux: [],
+interface SelectedSlot {
+  day: string;
+  timeSlot: {
+    startTime: string;
+    endTime: string;
+  };
+}
+
+interface AddExamModalProps {
+  showExamModal: boolean;
+  setShowExamModal: (value: boolean) => void;
+  selectedSlot?: SelectedSlot;
+}
+
+interface Module {
+  id: number;
+  nomModule: string;
+  option: {
+    id: number;
+  } | null;
+}
+
+interface Local {
+  id: string;
+  nom: string;
+  taille: number;
+}
+
+export interface Department {
+  id: number;
+  departmentName: string;
+  options: Option[];
+  enseignants: Enseignant[];
+}
+
+export interface Option {
+  id: number;
+  nomDeFiliere: string;
+  annee: number;
+  nbrInscrit: number;
+  department: Department;
+}
+
+export interface Enseignant {
+  id: number;
+  name: string;
+  department: Department;
+}
+
+interface Exam {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  department: Department;
+  enseignant: Enseignant;
+  option: Option;
+  module: Module;
+}
+
+const AddExamModal: React.FC<AddExamModalProps> = ({
+  showExamModal,
+  setShowExamModal,
+  selectedSlot,
+}) => {
+  const [departements, setDepartements] = useState<Department[]>([]);
+  const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
+  const [options, setOptions] = useState<Option[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [locaux, setLocaux] = useState<Local[]>([]);
+  const [newExam, setNewExam] = useState<Exam>({
+    id: 0,
+    date: selectedSlot?.day || "",
+    startTime: selectedSlot?.timeSlot?.startTime || "",
+    endTime: selectedSlot?.timeSlot?.endTime || "",
+    department: { id: 0, departmentName: "", options: [], enseignants: [] },
+    enseignant: { id: 0, name: "", department: { id: 0, departmentName: "", options: [], enseignants: [] } },
+    option: { id: 0, nomDeFiliere: "", annee: 0, nbrInscrit: 0, department: { id: 0, departmentName: "", options: [], enseignants: [] } },
+    module: { id: 0, nomModule: "", option: null },
   });
 
   // Fetch departments
   useEffect(() => {
-    axios.get("http://localhost:8088/api/departements").then((response) => {
-      setDepartements(response.data);
-    });
+    const fetchDepartements = async () => {
+      try {
+        const response = await axios.get("http://localhost:8088/api/departements");
+        setDepartements(response.data);
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+      }
+    };
+    fetchDepartements();
+  }, []);
+
+  // Fetch locaux immediately on component mount
+  useEffect(() => {
+    const fetchLocaux = async () => {
+      try {
+        const response = await axios.get("http://localhost:8088/api/locaux");
+        setLocaux(response.data);
+      } catch (error) {
+        console.error("Error fetching locaux:", error);
+      }
+    };
+    fetchLocaux();
   }, []);
 
   // Fetch enseignants based on selected departement
   useEffect(() => {
-    if (newSession.departement) {
-      axios.get(`http://localhost:8088/api/departements/${newSession.departement}/enseignants`).then((response) => {
+    const fetchEnseignants = async () => {
+      if (!newExam.department.id) {
+        setEnseignants([]);
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `http://localhost:8088/api/departements/${newExam.department.id}/enseignants`
+        );
         setEnseignants(response.data);
-      });
-    }
-  }, [newSession.departement]);
+      } catch (error) {
+        console.error("Error fetching enseignants:", error);
+      }
+    };
+    fetchEnseignants();
+  }, [newExam.department.id]);
 
-  // Handle department change
-  const handleDepartmentChange = (value: any) => {
-    setNewSession({ ...newSession, departement: value, enseignant: "", option: "", module: "" });
-  };
+  // Fetch options based on the selected departement
+  useEffect(() => {
+    const fetchOptions = async () => {
+      if (!newExam.department.id) {
+        setOptions([]);
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `http://localhost:8088/api/departements/${newExam.department.id}/options`
+        );
+        setOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+    fetchOptions();
+  }, [newExam.department.id]);
 
-  // Handle option change (you can adjust this based on your specific logic)
-  const handleOptionChange = (value: any) => {
-    setNewSession({ ...newSession, option: value, module: "" });
-    // Fetch modules based on the option
-    if (value) {
-      setModules(["Module A", "Module B", "Module C"]); // Just an example
-    }
-  };
+  // Fetch modules based on the selected option
+  useEffect(() => {
+    const fetchModules = async () => {
+      if (!newExam.option.id) {
+        setModules([]);
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `http://localhost:8088/api/modules/options/${newExam.option.id}`
+        );
+        setModules(response.data);
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+      }
+    };
+    fetchModules();
+  }, [newExam.option.id]);
 
-  const handleAddSession = (event: { preventDefault: () => void; }) => {
+  // Handle form submission
+  const handleAddExam = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle form submission
+
+    try {
+      const response = await axios.post("http://localhost:8088/api/exams", newExam);
+      console.log("Exam added successfully:", response.data);
+      setShowExamModal(false);
+    } catch (error) {
+      console.error("Error adding exam:", error);
+      alert("Error adding exam");
+    }
   };
+
+  // Prepare the options for React Select (locaux)
+  const locauxOptions = locaux.map((local) => ({
+    value: local.id,
+    label: `${local.nom} - Taille: ${local.taille}`,
+  }));
 
   return (
     <Dialog open={showExamModal} onOpenChange={setShowExamModal}>
@@ -72,113 +205,171 @@ const AddExamModal = ({ showExamModal, setShowExamModal }) => {
           <DialogTitle>Ajouter un Examen</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleAddSession} className="grid gap-4 py-4">
-          {/* Département Select */}
+        <form onSubmit={handleAddExam} className="grid gap-4 py-4">
+          {/* Department Select */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="departement" className="text-right">Département</Label>
-            <Select value={newSession.departement} onValueChange={handleDepartmentChange}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Sélectionner le département" />
-              </SelectTrigger>
-              <SelectContent>
-                {departements.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.departmentName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="department" className="text-right">Département</Label>
+            <select
+              id="department"
+              value={newExam.department.id.toString()}
+              onChange={(e) => {
+                setNewExam({
+                  ...newExam,
+                  department: departements.find((dept) => dept.id === parseInt(e.target.value)) || {
+                    id: 0,
+                    departmentName: "",
+                    options: [],
+                    enseignants: [],
+                  },
+                  enseignant: { id: 0, name: "", department: newExam.department },
+                  option: { id: 0, nomDeFiliere: "", annee: 0, nbrInscrit: 0, department: newExam.department },
+                  module: { id: 0, nomModule: "", option: null },
+                });
+              }}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            >
+              <option value="">Sélectionner le département</option>
+              {departements.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.departmentName}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Enseignant Select */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="enseignant" className="text-right">Enseignant</Label>
-            <Select value={newSession.enseignant} onValueChange={(value) => setNewSession({ ...newSession, enseignant: value })}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Sélectionner l'enseignant" />
-              </SelectTrigger>
-              <SelectContent>
-                {enseignants.map((ens) => (
-                  <SelectItem key={ens.id} value={ens.id}>
-                    {ens.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              id="enseignant"
+              value={newExam.enseignant.id.toString()}
+              onChange={(e) => {
+                setNewExam({
+                  ...newExam,
+                  enseignant: enseignants.find((ens) => ens.id === parseInt(e.target.value)) || {
+                    id: 0,
+                    name: "",
+                    department: newExam.department,
+                  },
+                });
+              }}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            >
+              <option value="">Sélectionner l'enseignant</option>
+              {enseignants.map((ens) => (
+                <option key={ens.id} value={ens.id}>
+                  {ens.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Option Select */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="option" className="text-right">Option</Label>
-            <Select value={newSession.option} onValueChange={handleOptionChange}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Sélectionner l'option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Option 1">Option 1</SelectItem>
-                <SelectItem value="Option 2">Option 2</SelectItem>
-                <SelectItem value="Option 3">Option 3</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              id="option"
+              value={newExam.option.id.toString()}
+              onChange={(e) => {
+                setNewExam({
+                  ...newExam,
+                  option: options.find((opt) => opt.id === parseInt(e.target.value)) || {
+                    id: 0,
+                    nomDeFiliere: "",
+                    annee: 0,
+                    nbrInscrit: 0,
+                    department: newExam.department,
+                  },
+                  module: { id: 0, nomModule: "", option: newExam.option },
+                });
+              }}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            >
+              <option value="">Sélectionner l'option</option>
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.nomDeFiliere} {option.annee}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Module Select based on Option */}
+          {/* Module Select */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="module" className="text-right">Module</Label>
-            <Select value={newSession.module} onValueChange={(value) => setNewSession({ ...newSession, module: value })}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Sélectionner le module" />
-              </SelectTrigger>
-              <SelectContent>
-                {modules.map((module) => (
-                  <SelectItem key={module} value={module}>
-                    {module}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              id="module"
+              value={newExam.module.id.toString()}
+              onChange={(e) => {
+                setNewExam({
+                  ...newExam,
+                  module: modules.find((mod) => mod.id === parseInt(e.target.value)) || {
+                    id: 0,
+                    nomModule: "",
+                    option: newExam.option,
+                  },
+                });
+              }}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            >
+              <option value="">Sélectionner le module</option>
+              {modules.map((module) => (
+                <option key={module.id} value={module.id}>
+                  {module.nomModule}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Mode Radio Buttons */}
+          {/* Date */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="isManuelle" className="text-right">Mode</Label>
-            <RadioGroup value={newSession.isManuelle ? "manuelle" : "automatique"} onValueChange={(value) => setNewSession({ ...newSession, isManuelle: value === "manuelle" })}>
-              <div className="flex items-center gap-4">
-                <RadioGroupItem value="automatique" id="automatique" />
-                <Label htmlFor="automatique">Automatique</Label>
-                <RadioGroupItem value="manuelle" id="manuelle" />
-                <Label htmlFor="manuelle">Manuelle</Label>
-              </div>
-            </RadioGroup>
+            <Label htmlFor="date" className="text-right">Date</Label>
+            <input
+              type="date"
+              id="date"
+              value={newExam.date}
+              onChange={(e) => setNewExam({ ...newExam, date: e.target.value })}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            />
           </div>
 
-          {/* Locaux Multi-select */}
-          {newSession.isManuelle && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="locaux" className="text-right">Locaux</Label>
-              <div className="col-span-3">
-                <Checkbox checked={newSession.locaux.includes("Locaux 1")} onCheckedChange={(checked) => setNewSession({
-                  ...newSession,
-                  locaux: checked ? [...newSession.locaux, "Locaux 1"] : newSession.locaux.filter(loc => loc !== "Locaux 1"),
-                })}>Locaux 1</Checkbox>
-                <Checkbox checked={newSession.locaux.includes("Locaux 2")} onCheckedChange={(checked) => setNewSession({
-                  ...newSession,
-                  locaux: checked ? [...newSession.locaux, "Locaux 2"] : newSession.locaux.filter(loc => loc !== "Locaux 2"),
-                })}>Locaux 2</Checkbox>
-                <Checkbox checked={newSession.locaux.includes("Locaux 3")} onCheckedChange={(checked) => setNewSession({
-                  ...newSession,
-                  locaux: checked ? [...newSession.locaux, "Locaux 3"] : newSession.locaux.filter(loc => loc !== "Locaux 3"),
-                })}>Locaux 3</Checkbox>
-              </div>
-            </div>
-          )}
+          {/* Start Time */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="startTime" className="text-right">Heure de début</Label>
+            <input
+              type="time"
+              id="startTime"
+              value={newExam.startTime}
+              onChange={(e) => setNewExam({ ...newExam, startTime: e.target.value })}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            />
+          </div>
+
+          {/* End Time */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="endTime" className="text-right">Heure de fin</Label>
+            <input
+              type="time"
+              id="endTime"
+              value={newExam.endTime}
+              onChange={(e) => setNewExam({ ...newExam, endTime: e.target.value })}
+              className="col-span-3 p-2 border rounded-lg"
+              required
+            />
+          </div>
 
           {/* Dialog Footer */}
           <div className="flex justify-end space-x-2 mt-4">
             <DialogClose asChild>
               <Button type="button" variant="outline">Annuler</Button>
             </DialogClose>
-            <Button type="submit">Enregistrer l'exam</Button>
+            <Button type="submit">Enregistrer l'examen</Button>
           </div>
         </form>
       </DialogContent>

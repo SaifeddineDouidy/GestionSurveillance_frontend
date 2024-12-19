@@ -1,27 +1,34 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { Clock, X, Calendar } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { Button } from "@/components/ui/button";
-import AddExamModal from '../component/AddExamModal'; // Import AddExamModal component
+"use client";
+import React, { useState, useEffect } from "react";
+import { Clock, Calendar } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import AddExamModal from "../component/AddExamModal";
 
 const ExamSchedule = () => {
   const [showExamModal, setShowExamModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
-  const [newSession, setNewSession] = useState({
-    departement: '',
-    enseignant: '',
-    option: '',
-    isManuelle: false,
-    locaux: [],
-  });
   const [sessionData, setSessionData] = useState<any>(null);
 
-  const storedSessionId = localStorage.getItem('sessionId');
+  const storedSessionId = localStorage.getItem("sessionId");
+
+  const handleCellClick = (day: Date, timeSlot: { time: string; }) => {
+    setSelectedSlot({
+      day,
+      timeSlot: {
+        ...timeSlot,
+        startTime: timeSlot.time.split(' - ')[0],
+        endTime: timeSlot.time.split(' - ')[1]
+      }
+    });
+    setShowExamModal(true);
+  };
+
 
   useEffect(() => {
     const fetchSessionData = async () => {
-      const response = await fetch(`http://localhost:8088/api/session/${storedSessionId}/schedule`);
+      const response = await fetch(
+        `http://localhost:8088/api/session/${storedSessionId}/schedule`
+      );
       const data = await response.json();
       setSessionData(data);
     };
@@ -35,23 +42,12 @@ const ExamSchedule = () => {
     const dateArray = [];
     let currentDate = start;
     while (currentDate <= end) {
-      dateArray.push(new Date(currentDate)); 
-      currentDate.setDate(currentDate.getDate() + 1); 
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
     }
     return dateArray;
   };
 
-  const handleCellClick = (day: { date: string; display: string; }, timeSlot: { id: number; time: string; }) => {
-    setSelectedSlot({ day, timeSlot });
-    setShowExamModal(true);
-  };
-
-  const handleAddSession = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(newSession);
-    // Handle session submission logic here
-    setShowExamModal(false); // Close modal after form submission
-  };
 
   if (!sessionData) return <div>Loading...</div>;
 
@@ -82,14 +78,14 @@ const ExamSchedule = () => {
                 <td className="border p-3 font-medium bg-gray-50">
                   <div className="flex items-center gap-2">
                     <Calendar size={16} />
-                    <div>{day.toLocaleDateString()}</div> 
+                    <div>{day.toLocaleDateString()}</div>
                   </div>
                 </td>
                 {sessionData.timeSlots.map((timeSlot: any, index: number) => (
                   <td
                     key={index}
                     className="border p-3 cursor-pointer transition-colors hover:bg-blue-50"
-                    onClick={() => handleCellClick({ date: day.toLocaleDateString(), display: day.toLocaleDateString() }, timeSlot)}
+                    onClick={() => handleCellClick(day, timeSlot)}
                   >
                     <div className="text-gray-400">Ajouter un examen</div>
                   </td>
@@ -100,12 +96,13 @@ const ExamSchedule = () => {
         </table>
 
         {/* Modal for adding exam */}
-        <AddExamModal 
-          showExamModal={showExamModal} 
-          setShowExamModal={setShowExamModal}
-          newSession={newSession}
-          setNewSession={setNewSession}
-        />
+        {showExamModal && (
+          <AddExamModal
+            showExamModal={showExamModal}
+            setShowExamModal={setShowExamModal}
+            selectedSlot={selectedSlot}
+          />
+        )}
       </div>
     </div>
   );
