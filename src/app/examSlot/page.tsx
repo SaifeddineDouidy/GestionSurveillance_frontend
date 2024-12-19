@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import AddExamModal from "@/components/AddExamModal";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface Exam {
   id: number;
@@ -13,6 +15,7 @@ interface Exam {
   enseignant: string;
   locaux: string[];
 }
+
 
 const ExamSlot = () => {
   const searchParams = useSearchParams();
@@ -32,29 +35,103 @@ const ExamSlot = () => {
   }, [date, startTime, endTime]);
 
   const fetchExams = async () => {
-    
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const formattedStart = startTime?.length === 5 ? `${startTime}:00` : startTime;
+      const formattedEnd = endTime?.length === 5 ? `${endTime}:00` : endTime;
+
+      const response = await axios.get("http://localhost:8088/api/exams/search", {
+        params: {
+          date: date,
+          startTime: formattedStart,
+          endTime: formattedEnd,
+        },
+      });
+
+      const transformedExams: Exam[] = response.data.map((exam: any) => ({
+        id: exam.id,
+        module: exam.module ? exam.module.nomModule : "Unknown",
+        enseignant: exam.enseignant ? exam.enseignant.name : "Unknown",
+        locaux: exam.locaux ? exam.locaux.map((l: any) => l.nom) : [],
+        
+      }));
+      console.log("Transformed exams:", transformedExams);
+      
+      
+      setExams(transformedExams);
+    } catch (error: any) {
+      console.error("Error fetching exams:", error);
+      setError("Failed to load exams. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  
+  
+  const handleUpdate = (examId: number) => {
+    console.log(`Update exam with ID: ${examId}`);
+  };
 
+  const handleDelete = async (examId: number) => {
+    console.log(`Delete exam with ID: ${examId}`);
+  };
+
+  const handleExamAdded = () => {
+    
+    setShowExamModal(false);
+    fetchExams();
+  };
+
+  if (!date || !startTime || !endTime) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-red-500">Missing required parameters</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <p>Loading exams...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <Navbar />
       <div className="bg-white rounded-lg shadow p-6">
-      
-        {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4">
-          Exams for {date} ({startTime} - {endTime})
-        </h1>
+          <h1 className="text-2xl font-bold">
+            Exams for {date} ({startTime} - {endTime})
+          </h1>
 
-        <Button
-          variant="default"
-          className="mb-4 bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={() => setShowExamModal(true)}
-        >
-          + Add Exam
-        </Button></div>
+          <Button
+            variant="default"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => setShowExamModal(true)}
+          >
+            + Add Exam
+          </Button>
+        </div>
 
         {exams.length > 0 ? (
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -64,6 +141,7 @@ const ExamSlot = () => {
                   <th className="px-4 py-2">Module</th>
                   <th className="px-4 py-2">Enseignant</th>
                   <th className="px-4 py-2">Locaux</th>
+                  <th className="px-4 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,6 +150,22 @@ const ExamSlot = () => {
                     <td className="px-4 py-2">{exam.module}</td>
                     <td className="px-4 py-2">{exam.enseignant}</td>
                     <td className="px-4 py-2">{exam.locaux.join(", ")}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex gap-2">
+                        <button
+                          className="text-blue-500 hover:text-blue-600"
+                          onClick={() => handleUpdate(exam.id)}
+                        >
+                          <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                        <button
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDelete(exam.id)}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -89,6 +183,7 @@ const ExamSlot = () => {
               day: date,
               timeSlot: { startTime, endTime },
             }}
+            onExamAdded={handleExamAdded}
           />
         )}
       </div>

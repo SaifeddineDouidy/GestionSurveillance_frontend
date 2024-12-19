@@ -106,6 +106,7 @@ export default function ModulePage() {
 
   // Handle delete session
   const handleDeleteModule = async () => {
+    console.log("Module to delete",moduleToDelete)
     if (moduleToDelete === null) return;
     try {
       const response = await fetch(

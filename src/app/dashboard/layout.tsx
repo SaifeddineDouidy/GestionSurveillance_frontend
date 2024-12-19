@@ -6,7 +6,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Fixed Navbar */}
-      <Navbar />
 
       {/* Main content area */}
       <div> {/* Padding to avoid content under the fixed Navbar */}

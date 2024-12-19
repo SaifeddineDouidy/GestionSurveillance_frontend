@@ -40,7 +40,7 @@ export default function OptionsPage() {
     nomDeFiliere: "",
     annee: "",
     nbrInscrit: 0,
-    departement: { id: 0 }, // Change departmentId to { id: 0 }
+    departement: { id: 0 }, 
   });  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editOption, setEditOption] = useState<Option | null>(null);
 
@@ -136,7 +136,7 @@ export default function OptionsPage() {
   // Handle edit Option
   const handleEditOption = async () => {
     if (!editOption) return;
-  
+  console.log(editOption)
     try {
       const response = await fetch(`http://localhost:8088/api/options/${editOption.id}`, {
         method: "PUT",
@@ -184,54 +184,53 @@ export default function OptionsPage() {
           />
         </div>
 
-                {/* Table */}
-<div className="bg-white shadow-md rounded-lg overflow-hidden">
-  <table className="table-auto w-full text-left border-collapse">
-    <thead className="bg-gray-200 text-gray-800">
-      <tr>
-        <th className="px-4 py-2">Nom de filière</th>
-        <th className="px-4 py-2">Niveau d'Année</th>
-        <th className="px-4 py-2">Nombre d'étudiant Inscrit</th>
-        <th className="px-1 py-2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {filteredOptions.map((option) => (
-        <tr
-          key={option.id}
-          className="bg-white cursor-pointer hover:bg-gray-100"
-          onClick={() => router.push(`/module?optionId=${option.id}`)}
-        >
-          <td className="px-4 py-2">{option.nomDeFiliere}</td>
-          <td className="px-4 py-2">{option.annee}</td>
-          <td className="px-4 py-2">{option.nbrInscrit}</td>
-          <td
-            className="px-1 py-2"
-            onClick={(e) => e.stopPropagation()} // Prevent row click event
-          >
-            <button
-              className="text-blue-500 hover:text-blue-700 mr-2"
-              onClick={() => {
-                setEditOption(option); // Pre-fill the modal with selected option's data
-                setIsEditModalOpen(true); // Open the modal
-              }}
-            >
-              <FontAwesomeIcon icon={faEdit} />
-            </button>
-            <button
-              className="text-red-500 hover:text-red-700"
-              onClick={() => openDeleteModal(option.id)}
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+        {/* Table */}
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="table-auto w-full text-left border-collapse">
+            <thead className="bg-gray-200 text-gray-800">
+              <tr>
+                <th className="px-4 py-2">Nom de filière</th>
+                <th className="px-4 py-2">Niveau d'Année</th>
+                <th className="px-4 py-2">Nombre d'étudiant Inscrit</th>
+                <th className="px-1 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOptions.map((option) => (
+                <tr
+                  key={option.id}
+                  className="bg-white cursor-pointer hover:bg-gray-100"
+                  onClick={() => router.push(`/module?optionId=${option.id}`)}
+                >
+                  <td className="px-4 py-2">{option.nomDeFiliere}</td>
+                  <td className="px-4 py-2">{option.annee}</td>
+                  <td className="px-4 py-2">{option.nbrInscrit}</td>
+                  <td
+                    className="px-1 py-2"
+                    onClick={(e) => e.stopPropagation()} // Prevent row click event
+                  >
+                    <button
+                      className="text-blue-500 hover:text-blue-700 mr-2"
+                      onClick={() => {
+                        setEditOption(option); 
+                        setIsEditModalOpen(true); 
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faEdit} />
+                    </button>
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => openDeleteModal(option.id)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-                {/* Delete Modal using Shadcn Dialog */}
         <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
           <DialogContent>
             <DialogHeader>
@@ -257,37 +256,41 @@ export default function OptionsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Modal using Shadcn Dialog */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Modifier une Option</DialogTitle>
-            </DialogHeader>
-            {editOption && (
-              <div className="grid gap-4 py-4">
-<div className="grid grid-cols-4 items-center gap-4">
-  <Label htmlFor="departmentId" className="text-right">
-    Département
-  </Label>
-  <select
-    id="departmentId"
-    value={editOption?.departement.id || 0}
-    onChange={(e) => setEditOption({ ...editOption, departement: {
-      id: +e.target.value,
-      departmentName: ""
-    } })}
-    className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
-  >
-    <option value={0} disabled>
-      Sélectionner un département
-    </option>
-    {departments.map((department) => (
-      <option key={department.id} value={department.id}>
-        {department.departmentName}
-      </option>
-    ))}
-  </select>
-</div>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Modifier une Option</DialogTitle>
+    </DialogHeader>
+    {editOption && (
+      <div className="grid gap-4 py-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="departmentId" className="text-right">
+            Département
+          </Label>
+          <select
+            id="departmentId"
+            value={editOption?.departement?.id || 0}
+            onChange={(e) =>
+              setEditOption({
+                ...editOption,
+                departement: {
+                  id: +e.target.value,
+                  departmentName: "",
+                },
+              })
+            }
+            className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+          >
+            <option value={0} disabled>
+              Sélectionner un département
+            </option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.departmentName}
+              </option>
+            ))}
+          </select>
+        </div>
 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="nom" className="text-right">
@@ -326,20 +329,19 @@ export default function OptionsPage() {
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Annuler
-                </Button>
-              </DialogClose>
-              <Button variant="blue" onClick={handleEditOption}>
-                Enregistrer
-              </Button>
-            </DialogFooter>
+           <DialogFooter>
+      <DialogClose asChild>
+        <Button type="button" variant="secondary">
+          Annuler
+        </Button>
+      </DialogClose>
+      <Button variant="blue" onClick={handleEditOption}>
+        Enregistrer
+      </Button>
+    </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Add Modal using Shadcn Dialog */}
         {/* Add Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogContent>
@@ -348,25 +350,25 @@ export default function OptionsPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-  <Label htmlFor="departmentId" className="text-right">
-    Département
-  </Label>
-  <select
-    id="departmentId"
-    value={newOption.departement.id}
-    onChange={(e) => setNewOption({ ...newOption, departement: { id: +e.target.value }  })}
-    className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
-  >
-    <option value={0} disabled>
-      Sélectionner un département
-    </option>
-    {departments.map((department) => (
-      <option key={department.id} value={department.id}>
-        {department.departmentName}
-      </option>
-    ))}
-  </select>
-</div>
+                  <Label htmlFor="departmentId" className="text-right">
+                    Département
+                  </Label>
+                  <select
+                    id="departmentId"
+                    value={newOption.departement.id}
+                    onChange={(e) => setNewOption({ ...newOption, departement: { id: +e.target.value }  })}
+                    className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+                  >
+                    <option value={0} disabled>
+                      Sélectionner un département
+                    </option>
+                    {departments.map((department) => (
+                      <option key={department.id} value={department.id}>
+                        {department.departmentName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="nomDeFiliere" className="text-right">

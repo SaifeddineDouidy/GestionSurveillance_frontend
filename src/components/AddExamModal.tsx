@@ -72,6 +72,7 @@ interface AddExamModalProps {
   showExamModal: boolean;
   setShowExamModal: (value: boolean) => void;
   selectedSlot?: SelectedSlot;
+  onExamAdded?: () => void;
 }
 
 interface SessionState {
@@ -90,13 +91,14 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   showExamModal,
   setShowExamModal,
   selectedSlot,
+  onExamAdded,
 }) => {
   const [departements, setDepartements] = useState<Department[]>([]);
   const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
   const [options, setOptions] = useState<Option[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [locaux, setLocaux] = useState<Local[]>([]);
-  
+
   // Initialize session state
   const [newSession, setNewSession] = useState<SessionState>({
     departement: "",
@@ -206,6 +208,8 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
     }
   }, [newSession.option, newSession.isManuelle]);
 
+  
+
   // Modified form submission
   const handleAddSession = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -245,6 +249,9 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
     try {
       const response = await axios.post("http://localhost:8088/api/exams", examPayload);
       console.log("Exam created successfully:", response.data);
+      if (onExamAdded) {
+        onExamAdded();
+      }
       setShowExamModal(false);
     } catch (error) {
       console.error("Error creating exam:", error);
@@ -307,7 +314,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
       }
       try {
         const response = await axios.get(
-          `http://localhost:8088/api/options/departement/${newSession.departement}`
+          `http://localhost:8088/api/departements/${newSession.departement}/options`
         );
         setOptions(response.data);
       } catch (error) {

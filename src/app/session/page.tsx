@@ -45,7 +45,7 @@ import {
 type Session = {
   id: number;
   type: string;
-  isValid: boolean;
+  valid: boolean;
   startDate: string;
   endDate: string;
   morningStart1: string;
@@ -73,7 +73,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     type: "",
     startDate: "",
     endDate: "",
-    isValid: "false",
+    valid: "false",
     morningStart1: "08:00",
     morningEnd1: "10:00",
     morningStart2: "10:00",
@@ -91,7 +91,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     setNewSession({ type: "",
       startDate: "",
       endDate: "",
-      isValid: "false",
+      valid: "false",
       morningStart1: "08:00",
       morningEnd1: "10:00",
       morningStart2: "10:00",
@@ -123,27 +123,66 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   };
 
 
-
-  // Fetch sessions from backend
   useEffect(() => {
     async function fetchSessions() {
       try {
         const response = await fetch("http://localhost:8088/api/session");
         if (response.ok) {
           const data: Session[] = await response.json();
-          setSessions(data);
+          console.log(data)
+          setSessions(data); // Ensure the sessions are populated with the correct data
         } else {
-          console.error(
-            "Failed to fetch sessions. Response status:",
-            response.status
-          );
+          console.error("Failed to fetch sessions. Response status:", response.status);
         }
       } catch (error) {
         console.error("Error fetching sessions:", error);
       }
     }
     fetchSessions();
-  }, []); // Keep this empty array to run only on initial mount
+  }, []);
+
+  // Toggle validation function
+  const toggleValidation = async (sessionId: number, currentValidationStatus: boolean) => {
+    const updatedvalid = currentValidationStatus; // Toggle the validation status
+    console.log(updatedvalid)
+    // Update the local state immediately
+    setSessions((prevSessions) =>
+      prevSessions.map((session) =>
+        session.id === sessionId ? { ...session, valid: updatedvalid } : session
+      )
+    );
+    console.log(sessions)
+
+
+    try {
+      const response = await fetch(
+        `http://localhost:8088/api/session/${sessionId}/validate`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ valid: updatedvalid }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle validation");
+      }
+    } catch (error) {
+      console.error("Error toggling validation:", error);
+      alert("An error occurred while updating the validation status.");
+    }
+  };
+
+  const handleSessionClick = (session: Session) => {
+    if (!session.valid) {
+      // Store the session in localStorage
+      localStorage.setItem("sessionId", JSON.stringify(session.id));
+      // Navigate to dashboard
+      router.push(`/dashboard?sessionId=${session.id}`);
+    } else {
+      alert("This session is validated and cannot be accessed.");
+    }
+  };
 
   // Handle form submission for adding a session
   const handleAddSession = async (e: React.FormEvent) => {
@@ -171,6 +210,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       console.error("Error adding session:", error);
     }
   };
+
   // Handle editing a session
   const handleEditSession = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,45 +298,8 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       console.error("Error fetching sessions:", error);
     }
   };
-
-  const toggleValidation = async (sessionId: number, isValid: boolean) => {
-    try {
-      console.log(sessionId);
-      const response = await fetch(
-        `http://localhost:8088/api/session/${sessionId}/validate`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isValid }),
-        }
-      );
   
-      if (response.ok) {
-        setSessions((prevSessions) =>
-          prevSessions.map((session) =>
-            session.id === sessionId ? { ...session, isValid } : session
-          )
-        );
-      } else {
-        throw new Error("Failed to toggle validation");
-      }
-    } catch (error) {
-      console.error("Error toggling validation:", error);
-      alert("An error occurred while updating the validation status.");
-    }
-  };
 
-  const handleSessionClick = (session: Session) => {
-    if (!session.isValid) {
-      // Store the session in localStorage
-      localStorage.setItem("sessionId", JSON.stringify(session.id));
-      // Navigate to dashboard
-      router.push(`/dashboard?sessionId=${session.id}`);
-    } else {
-      alert("This session is validated and cannot be accessed.");
-    }
-  };
-  
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -528,259 +531,258 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 <th className="px-4 py-2 text-gray-800">Actions</th>
               </tr>
             </thead><tbody>
-  {sessions.map((session) => (
-    <tr
-      key={session.id}
-      className={`border-b cursor-pointer ${
-        session.isValid
-          ? "bg-gray-200 text-gray-500"
-          : "bg-white hover:bg-gray-100"
-      }`}
-      onClick={() => handleSessionClick(session)}
-    >
-      <td className="px-4 py-2">{session.type}</td>
-      <td className="px-4 py-2">{session.startDate}</td>
-      <td className="px-4 py-2">{session.endDate}</td>
-      <td className="px-4 py-2">
-        <div className="flex space-x-3">
-          {/* Edit Icon with reduced opacity when validated */}
-          <FaEdit
-            size={16}
-            className={`${
-              session.isValid
-                ? "text-blue-300 cursor-not-allowed"
-                : "text-blue-500 hover:text-blue-700 cursor-pointer"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!session.isValid) openEditModal(session);
-            }}
-          />
+              {sessions.map((session) => (
+                <tr
+                  key={session.id}
+                  className={`border-b cursor-pointer ${
+                    session.valid
+                      ? "bg-gray-200 text-gray-500"
+                      : "bg-white hover:bg-gray-100"
+                  }`}
+                  onClick={() => handleSessionClick(session)}
+                >
+                  <td className="px-4 py-2">{session.type}</td>
+                  <td className="px-4 py-2">{session.startDate}</td>
+                  <td className="px-4 py-2">{session.endDate}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex space-x-3">
+                      {/* Edit Icon with reduced opacity when validated */}
+                      <FaEdit
+                        size={16}
+                        className={`${
+                          session.valid
+                            ? "text-blue-300 cursor-not-allowed"
+                            : "text-blue-500 hover:text-blue-700 cursor-pointer"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!session.valid) openEditModal(session);
+                        }}
+                      />
 
-          {/* Delete Icon with reduced opacity when validated */}
-          <FaTrash
-            size={16}
-            className={`${
-              session.isValid
-                ? "text-red-300 cursor-not-allowed"
-                : "text-red-500 hover:text-red-700 cursor-pointer"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!session.isValid) openDeleteModal(session.id);
-            }}
-          />
+                      {/* Delete Icon with reduced opacity when validated */}
+                      <FaTrash
+                        size={16}
+                        className={`${
+                          session.valid
+                            ? "text-red-300 cursor-not-allowed"
+                            : "text-red-500 hover:text-red-700 cursor-pointer"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!session.valid) openDeleteModal(session.id);
+                        }}
+                      />
 
-          {/* Validation Toggle */}
-          {session.isValid ? (
-            <div className="flex items-center">
-              <FaCheckCircle
-                size={16}
-                className="text-green-500 hover:text-green-700 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleValidation(session.id, false);
-                }}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <FaTimesCircle
-                size={16}
-                className="text-gray-500 hover:text-gray-700 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleValidation(session.id, true);
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
+                      {/* Validation Toggle */}
+                      {session.valid ? (
+                        <div className="flex items-center">
+                          <FaCheckCircle
+                            size={16}
+                            className="text-green-500 hover:text-green-700 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleValidation(session.id, false);
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <FaTimesCircle
+                            size={16}
+                            className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleValidation(session.id, true);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
 
       {/* Edit Modal */}
-{isEditModalOpen && editSession && (
-  <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-    <DialogContent className="sm:max-w-[625px]">
-      <DialogHeader>
-        <DialogTitle>Modifier la session</DialogTitle>
-      </DialogHeader>
+      {isEditModalOpen && editSession && (
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Modifier la session</DialogTitle>
+            </DialogHeader>
 
-      <form onSubmit={handleEditSession} className="grid gap-4 py-4">
-        {/* Session Type */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            Type de session
-          </Label>
-          <Select
-            value={editSession.type}
-            onValueChange={(value) =>
-              setEditSession({ ...editSession, type: value })
-            }
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Sélectionner le type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Normal de printemps">
-                Normal de printemps
-              </SelectItem>
-              <SelectItem value="Normal d'hiver">Normal d'hiver</SelectItem>
-              <SelectItem value="Rattrapage de printemps">
-                Rattrapage de printemps
-              </SelectItem>
-              <SelectItem value="Rattrapage d'hiver">
-                Rattrapage d'hiver
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <form onSubmit={handleEditSession} className="grid gap-4 py-4">
+              {/* Session Type */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="type" className="text-right">
+                  Type de session
+                </Label>
+                <Select
+                  value={editSession.type}
+                  onValueChange={(value) =>
+                    setEditSession({ ...editSession, type: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Sélectionner le type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal de printemps">
+                      Normal de printemps
+                    </SelectItem>
+                    <SelectItem value="Normal d'hiver">Normal d'hiver</SelectItem>
+                    <SelectItem value="Rattrapage de printemps">
+                      Rattrapage de printemps
+                    </SelectItem>
+                    <SelectItem value="Rattrapage d'hiver">
+                      Rattrapage d'hiver
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Start Date */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="startDate" className="text-right">
-            Date de début
-          </Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={editSession.startDate}
-            onChange={(e) =>
-              setEditSession({ ...editSession, startDate: e.target.value })
-            }
-            className="col-span-3"
-          />
-        </div>
+              {/* Start Date */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="startDate" className="text-right">
+                  Date de début
+                </Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={editSession.startDate}
+                  onChange={(e) =>
+                    setEditSession({ ...editSession, startDate: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
 
-        {/* End Date */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="endDate" className="text-right">
-            Date de fin
-          </Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={editSession.endDate}
-            onChange={(e) =>
-              setEditSession({ ...editSession, endDate: e.target.value })
-            }
-            className="col-span-3"
-          />
-        </div>
+              {/* End Date */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="endDate" className="text-right">
+                  Date de fin
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={editSession.endDate}
+                  onChange={(e) =>
+                    setEditSession({ ...editSession, endDate: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
 
-        {/* Creneaux Section */}
-        <div className="grid gap-2">
-          <h3 className="text-md font-semibold text-gray-700">Creneaux</h3>
+              {/* Creneaux Section */}
+              <div className="grid gap-2">
+                <h3 className="text-md font-semibold text-gray-700">Creneaux</h3>
 
-          {/* Morning Creneaux */}
-          <div className="grid grid-cols-4 gap-2">
-            <Input
-              type="time"
-              value={editSession.morningStart1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningStart1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningEnd1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningEnd1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningStart2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningStart2: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningEnd2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningEnd2: e.target.value,
-                })
-              }
-            />
-          </div>
+                {/* Morning Creneaux */}
+                <div className="grid grid-cols-4 gap-2">
+                  <Input
+                    type="time"
+                    value={editSession.morningStart1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningStart1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningEnd1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningEnd1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningStart2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningStart2: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningEnd2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningEnd2: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-          {/* Afternoon Creneaux */}
-          <div className="grid grid-cols-4 gap-2">
-            <Input
-              type="time"
-              value={editSession.afternoonStart1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonStart1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonEnd1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonEnd1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonStart2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonStart2: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonEnd2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonEnd2: e.target.value,
-                })
-              }
-            />
-          </div>
-        </div>
+                {/* Afternoon Creneaux */}
+                <div className="grid grid-cols-4 gap-2">
+                  <Input
+                    type="time"
+                    value={editSession.afternoonStart1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonStart1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonEnd1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonEnd1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonStart2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonStart2: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonEnd2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonEnd2: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
 
-        {/* Dialog Footer */}
-        <div className="flex justify-end space-x-2 mt-4">
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-              Annuler
-            </Button>
-          </DialogClose>
-          <Button type="submit">Enregistrer les modifications</Button>
-        </div>
-      </form>
-    </DialogContent>
-  </Dialog>
-)}
+              {/* Dialog Footer */}
+              <div className="flex justify-end space-x-2 mt-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Annuler
+                  </Button>
+                </DialogClose>
+                <Button type="submit">Enregistrer les modifications</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Confirmation Modal */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={closeDeleteModal}>
