@@ -167,7 +167,14 @@ export default function OptionsPage() {
             <Navbar />
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">
+                <div className="space-y-1">
                     <h1 className="text-2xl font-bold">Options ({filteredOptions.length})</h1>
+                    <Link
+              href="/session"
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ← Back to Session
+            </Link></div>
                     <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
               + Ajouter une nouvelle option
             </Button>

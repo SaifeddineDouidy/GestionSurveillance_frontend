@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const DepartmentsPage = () => {
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
@@ -31,7 +33,7 @@ const filteredDepartments = departments.filter((dept) =>
 
   const router = useRouter();
 
-const navigateToEnseignants = (departmentId: number) => {
+const navigateToEnseignants = (departmentId: any) => {
   if (router) {
     router.push(`/enseignant?departmentId=${departmentId}`);
   } else {
@@ -95,7 +97,7 @@ const navigateToEnseignants = (departmentId: number) => {
         `http://localhost:8088/api/departements/${currentDepartment.id}`,
         {
           departmentName: newDepartmentName,
-          enseignants: [],
+
         }
       );
 
@@ -141,7 +143,14 @@ const navigateToEnseignants = (departmentId: number) => {
       <div className="bg-white rounded-lg shadow p-6">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
+        <div className="space-y-1">
           <h1 className="text-2xl font-bold">Departements ({departments.length})</h1>
+          <Link
+              href="/session"
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ← Back to Session
+            </Link></div>
           <div className="flex space-x-2">
             <Button variant="blue" onClick={() => alert("File upload placeholder")}>
               Choisir un fichier (.xls ou .csv)
