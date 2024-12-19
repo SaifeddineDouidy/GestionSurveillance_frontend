@@ -136,6 +136,7 @@ const navigateToEnseignants = (departmentId: any) => {
   };
 
   return (
+    <div className="min-h-screen bg-gray-50">
     <div className="p-8 bg-gray-50 min-h-screen">
       <Navbar />
       <div className="bg-white rounded-lg shadow p-6">
@@ -258,6 +259,7 @@ const navigateToEnseignants = (departmentId: any) => {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 };

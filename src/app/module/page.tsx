@@ -196,7 +196,8 @@ export default function ModulePage() {
   };
 
   return (
-    <div className="bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 p-8">
       <Navbar />
       <div className="mt-4 p-10">
         <div className="flex justify-between items-center mb-8">
@@ -373,6 +374,7 @@ export default function ModulePage() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
     </div>
   );
 }

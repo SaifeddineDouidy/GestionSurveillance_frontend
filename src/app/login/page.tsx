@@ -60,7 +60,7 @@ export default function AuthenticationPage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
+    <div className="flex justify-center items-center h-screen bg-gray-50">
       <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <CardHeader>
           <h1 className="text-2xl font-bold mb-6 text-black text-center">Connexion</h1>

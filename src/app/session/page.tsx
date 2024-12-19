@@ -79,9 +79,23 @@ export default function SessionPage() {
     afternoonStart2: "16:00",
     afternoonEnd2: "18:00",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredSessions = sessions.filter((session) =>
+    session.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    session.startDate.includes(searchQuery) ||
+    session.endDate.includes(searchQuery)
+  );
   const router = useRouter();
 
   const openModal = () => setIsModalOpen(true);
+  const handleSessionClick = (session: Session) => {
+    if (!session.valid) {
+      // Store the session in localStorage
+      localStorage.setItem('sessionId', JSON.stringify(session.id));
+      // Navigate to dashboard
+      router.push(`/dashboard?sessionId=${session.id}`);
+    }
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -479,15 +493,27 @@ export default function SessionPage() {
           </div>
         </div>
 
+
         {/* Sessions Table */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-10">
+          {/* Search Bar */}
+<div className="mb-4">
+          <Input
+            placeholder="Rechercher par type, date de début, ou date de fin..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-bold text-gray-800">
               Sessions ({sessions.length})
             </h2>
           </div>
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200">
+            <thead className="bg-gray-200 text-gray-800">
               <tr>
                 <th className="px-4 py-2 text-gray-800">Type</th>
                 <th className="px-4 py-2 text-gray-800">Date de début</th>
@@ -495,7 +521,7 @@ export default function SessionPage() {
                 <th className="px-4 py-2 text-gray-800">Actions</th>
               </tr>
             </thead><tbody>
-  {sessions.map((session) => (
+  {filteredSessions.map((session) => (
     <tr
       key={session.id}
       className={`border-b cursor-pointer ${
@@ -503,11 +529,7 @@ export default function SessionPage() {
           ? "bg-gray-200 text-gray-500" // Disabled row styling
           : "bg-white hover:bg-gray-100"
       }`}
-      onClick={() => {
-        if (!session.valid) {
-          router.push(`/dashboard?sessionId=${session.id}`);
-        }
-      }}
+      onClick={() => handleSessionClick(session)}
     >
       <td className="px-4 py-2">{session.type}</td>
       <td className="px-4 py-2">{session.startDate}</td>
@@ -573,6 +595,7 @@ export default function SessionPage() {
 </tbody>
 
           </table>
+          </div>
         </div>
       </div>
 

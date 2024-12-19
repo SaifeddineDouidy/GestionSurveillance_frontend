@@ -147,7 +147,7 @@ export default function OptionsPage() {
 
 
     return (
-        <div className="bg-gray-100 p-8">
+        <div className="bg-gray-50 p-8">
             <Navbar />
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">

@@ -225,7 +225,8 @@ export default function LocauxPage() {
   };
 
   return (
-    <div className="bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 p-8 ">
       <Navbar />
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-8">
@@ -535,6 +536,7 @@ export default function LocauxPage() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
     </div>
   );
 }
