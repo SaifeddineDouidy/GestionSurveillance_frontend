@@ -1,29 +1,62 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { Clock, X, Calendar } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { Button } from "@/components/ui/button";
-import AddExamModal from '../component/AddExamModal'; // Import AddExamModal component
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Clock, Calendar } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import Navbar from "@/components/Navbar";
+
+interface TimeSlot {
+  time: string;
+}
+
+interface SessionData {
+  startDate: string;
+  endDate: string;
+  timeSlots: TimeSlot[];
+}
 
 const ExamSchedule = () => {
-  const [showExamModal, setShowExamModal] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<any>(null);
-  const [newSession, setNewSession] = useState({
-    departement: '',
-    enseignant: '',
-    option: '',
-    isManuelle: false,
-    locaux: [],
-  });
-  const [sessionData, setSessionData] = useState<any>(null);
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const storedSessionId = localStorage.getItem('sessionId');
+  // Navigates to a given time slot page
+  const navigateToTimeSlot = (formattedDate: string, startTime: string, endTime: string) => {
+    const url = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
+    // Using window.location for navigation
+    window.location.href = url;
+  };
+
+  const handleCellClick = (day: Date, timeSlot: TimeSlot) => {
+    const [startTime, endTime] = timeSlot.time.split(" - ");
+    const formattedDate = day.toISOString().split("T")[0];
+
+    try {
+      navigateToTimeSlot(formattedDate, startTime, endTime);
+    } catch (err) {
+      console.error("Navigation error:", err);
+      // Fallback
+      window.location.href = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
+    }
+  };
 
   useEffect(() => {
     const fetchSessionData = async () => {
-      const response = await fetch(`http://localhost:8088/api/session/${storedSessionId}/schedule`);
-      const data = await response.json();
-      setSessionData(data);
+      try {
+        const storedSessionId = localStorage.getItem("sessionId");
+        if (!storedSessionId) {
+          console.error("No session ID found");
+          return;
+        }
+
+        const response = await fetch(
+          `http://localhost:8088/api/session/${storedSessionId}/schedule`
+        );
+        const data = await response.json();
+        setSessionData(data);
+      } catch (error) {
+        console.error("Failed to fetch session data:", error);
+      }
     };
 
     fetchSessionData();
@@ -32,25 +65,15 @@ const ExamSchedule = () => {
   const generateDateRange = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const dateArray = [];
-    let currentDate = start;
+    const dateArray: Date[] = [];
+    let currentDate = new Date(start);
+
     while (currentDate <= end) {
-      dateArray.push(new Date(currentDate)); 
-      currentDate.setDate(currentDate.getDate() + 1); 
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
     }
+
     return dateArray;
-  };
-
-  const handleCellClick = (day: { date: string; display: string; }, timeSlot: { id: number; time: string; }) => {
-    setSelectedSlot({ day, timeSlot });
-    setShowExamModal(true);
-  };
-
-  const handleAddSession = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(newSession);
-    // Handle session submission logic here
-    setShowExamModal(false); // Close modal after form submission
   };
 
   if (!sessionData) return <div>Loading...</div>;
@@ -65,8 +88,8 @@ const ExamSchedule = () => {
         <table className="min-w-full border-collapse">
           <thead>
             <tr>
-              <th className="border p-3 bg-gray-50">Jours</th>
-              {sessionData.timeSlots.map((slot: any, index: number) => (
+              <th className="border p-3 bg-gray-50">Days</th>
+              {sessionData.timeSlots.map((slot: TimeSlot, index: number) => (
                 <th key={index} className="border p-3 bg-gray-50">
                   <div className="flex items-center justify-center gap-2">
                     <Clock size={16} />
@@ -82,30 +105,22 @@ const ExamSchedule = () => {
                 <td className="border p-3 font-medium bg-gray-50">
                   <div className="flex items-center gap-2">
                     <Calendar size={16} />
-                    <div>{day.toLocaleDateString()}</div> 
+                    <div>{day.toLocaleDateString()}</div>
                   </div>
                 </td>
-                {sessionData.timeSlots.map((timeSlot: any, index: number) => (
+                {sessionData.timeSlots.map((timeSlot: TimeSlot, index: number) => (
                   <td
                     key={index}
-                    className="border p-3 cursor-pointer transition-colors hover:bg-blue-50"
-                    onClick={() => handleCellClick({ date: day.toLocaleDateString(), display: day.toLocaleDateString() }, timeSlot)}
+                    className="border p-3 cursor-pointer hover:bg-blue-50"
+                    onClick={() => handleCellClick(day, timeSlot)}
                   >
-                    <div className="text-gray-400">Ajouter un examen</div>
+                    <div className="text-gray-400">Add exam</div>
                   </td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
-
-        {/* Modal for adding exam */}
-        <AddExamModal 
-          showExamModal={showExamModal} 
-          setShowExamModal={setShowExamModal}
-          newSession={newSession}
-          setNewSession={setNewSession}
-        />
       </div>
     </div>
   );
