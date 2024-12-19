@@ -6,12 +6,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Select from "react-select";
+
 
 interface SelectedSlot {
     day: string;
@@ -21,11 +21,6 @@ interface SelectedSlot {
     };
   }
   
-  interface AddExamModalProps {
-    showExamModal: boolean;
-    setShowExamModal: (value: boolean) => void;
-    selectedSlot?: SelectedSlot;
-  }
 
   interface Module {
     id: number; 
@@ -60,38 +55,50 @@ interface SelectedSlot {
     name: string;
     department: Department;
   }
+// Updated interfaces to match backend model
+interface Exam {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  departement: Department;
+  enseignant: Enseignant;
+  option: Option;
+  module: Module;
+}
+
+
+interface AddExamModalProps {
+  showExamModal: boolean;
+  setShowExamModal: (value: boolean) => void;
+  selectedSlot?: SelectedSlot;
+}
+
+interface SessionState {
+  departement: string;
+  enseignant: string;
+  option: string;
+  module: string;
+  locaux: string[];
+  date: string | undefined;
+  startTime: string | undefined;
+  endTime: string | undefined;
+  isManuelle: boolean;
+}
 
 const AddExamModal: React.FC<AddExamModalProps> = ({
-    showExamModal,
-    setShowExamModal,
-    selectedSlot,
-  }) =>{
+  showExamModal,
+  setShowExamModal,
+  selectedSlot,
+}) => {
   const [departements, setDepartements] = useState<Department[]>([]);
   const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
   const [options, setOptions] = useState<Option[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [locaux, setLocaux] = useState<Local[]>([]);
-  const [newExam, setNewExam] = useState<Exam>({
-    id: 0,
-    date: selectedSlot?.day || "",
-    startTime: selectedSlot?.timeSlot?.startTime || "",
-    endTime: selectedSlot?.timeSlot?.endTime || "",
-    department: { id: 0, departmentName: "", options: [], enseignants: [] },
-    enseignant: { id: 0, name: "", department: { id: 0, departmentName: "", options: [], enseignants: [] } },
-    option: { id: 0, nomDeFiliere: "", annee: 0, nbrInscrit: 0, department: { id: 0, departmentName: "", options: [], enseignants: [] } },
-    module: { id: 0, nomModule: "", option: null },
-  });
-  const [newSession, setNewSession] = useState<{
-    departement: string;
-    enseignant: string;
-    option: string;
-    module: string;
-    locaux: string[]; 
-    date: string | undefined;
-    startTime: string | undefined;
-    endTime: string | undefined;
-    isManuelle: boolean;
-  }>({
+  
+  // Initialize session state
+  const [newSession, setNewSession] = useState<SessionState>({
     departement: "",
     enseignant: "",
     option: "",
@@ -100,8 +107,139 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
     date: selectedSlot?.day,
     startTime: selectedSlot?.timeSlot?.startTime,
     endTime: selectedSlot?.timeSlot?.endTime,
-    isManuelle: false, 
+    isManuelle: false,
   });
+
+  // Modified automatic locaux selection logic
+  const selectLocauxAutomatically = () => {
+    console.log("=== Starting Automatic Locaux Selection ===");
+    
+    if (!newSession.option || newSession.isManuelle) {
+      console.log("Skipping auto selection - manual mode or no option selected");
+      return;
+    }
+
+    const selectedOption = options.find(opt => opt.id.toString() === newSession.option);
+    if (!selectedOption) {
+      console.log("Selected option not found:", newSession.option);
+      return;
+    }
+
+    const nbrInscrit = selectedOption.nbrInscrit;
+    console.log("Students to accommodate:", nbrInscrit);
+
+    // Sort locaux by size in descending order for efficiency
+    const sortedLocaux = [...locaux].sort((a, b) => b.taille - a.taille);
+    console.log("Available sorted locaux:", sortedLocaux.map(l => `${l.nom} (${l.taille})`));
+
+    let bestCombination: Local[] = [];
+    let bestTotalCapacity = 0;
+    let smallestExcess = Infinity;
+
+    // Function to calculate total capacity of a combination
+    const calculateCapacity = (rooms: Local[]): number => {
+        return rooms.reduce((sum, room) => sum + room.taille, 0);
+    };
+
+    // Try different combinations of locaux
+    for (let i = 0; i < sortedLocaux.length; i++) {
+        let currentCombination: Local[] = [];
+        let currentCapacity = 0;
+        
+        // Start with the current room
+        for (let j = i; j < sortedLocaux.length; j++) {
+            // Add this room to our current combination
+            currentCombination.push(sortedLocaux[j]);
+            currentCapacity = calculateCapacity(currentCombination);
+            
+            console.log(`Trying combination:`, 
+                currentCombination.map(l => `${l.nom} (${l.taille})`),
+                `Total: ${currentCapacity}`
+            );
+
+            // If we've found a valid combination
+            if (currentCapacity >= nbrInscrit) {
+                const excess = currentCapacity - nbrInscrit;
+                
+                // If this combination has less excess capacity than our previous best
+                if (excess < smallestExcess) {
+                    smallestExcess = excess;
+                    bestCombination = [...currentCombination];
+                    bestTotalCapacity = currentCapacity;
+                    
+                    console.log("New best combination found:", {
+                        rooms: bestCombination.map(l => `${l.nom} (${l.taille})`),
+                        capacity: bestTotalCapacity,
+                        excess: smallestExcess
+                    });
+                }
+                break; // Move to next starting room
+            }
+        }
+    }
+
+    if (bestCombination.length > 0) {
+        console.log("=== Final Selection ===");
+        console.log("Selected rooms:", bestCombination.map(l => `${l.nom} (${l.taille})`));
+        console.log("Total capacity:", bestTotalCapacity);
+        console.log("Required capacity:", nbrInscrit);
+        console.log("Excess capacity:", smallestExcess);
+
+        setNewSession(prev => ({
+            ...prev,
+            locaux: bestCombination.map(local => local.id)
+        }));
+    } else {
+        console.warn("No suitable combination found");
+        alert(`Impossible de trouver une combinaison de salles pour ${nbrInscrit} étudiants`);
+        setNewSession(prev => ({
+            ...prev,
+            locaux: []
+        }));
+    }
+};
+
+  // Trigger automatic selection when option changes
+  useEffect(() => {
+    if (!newSession.isManuelle && newSession.option) {
+      selectLocauxAutomatically();
+    }
+  }, [newSession.option, newSession.isManuelle]);
+
+  // Modified form submission
+  const handleAddSession = async (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log("=== Starting Form Submission ===");
+
+    if (newSession.locaux.length === 0) {
+      console.error("No locaux selected");
+      alert("Veuillez sélectionner au moins un local");
+      return;
+    }
+
+    // Format the exam payload to match backend expectations
+    const examPayload = {
+      date: newSession.date,
+      startTime: newSession.startTime,
+      endTime: newSession.endTime,
+      departementId: parseInt(newSession.departement),
+      enseignantId: parseInt(newSession.enseignant),
+      optionId: parseInt(newSession.option),
+      moduleId: parseInt(newSession.module),
+      locauxIds: newSession.locaux.map(id => parseInt(id))
+    };
+
+    console.log("Submitting exam payload:", examPayload);
+
+    try {
+      const response = await axios.post("http://localhost:8088/api/exams", examPayload);
+      console.log("Exam created successfully:", response.data);
+      setShowExamModal(false);
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      alert("Erreur lors de la création de l'examen");
+    }
+  };
   
 
   // Fetch departments
@@ -188,110 +326,6 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   }, [newSession.option]);
 
  
-
- // Automatically select locaux when option or mode changes
-    useEffect(() => {
-        if (newSession.isManuelle || !newSession.option) return;
-
-    
-        // Get the selected option
-        const selectedOption = options.find((opt) => opt.id === newSession.option);
-        console.log(selectedOption)
-        if (!selectedOption) {
-        console.log("No option found for automatic locaux selection");
-        return;
-        }
-        
-
-    
-        const nbrInscrit = selectedOption.nbrInscrit;
-        console.log("Number of students required: ", nbrInscrit);
-    
-        // Sort the locaux by size (taille) in ascending order
-        const sortedLocaux = [...locaux].sort((a, b) => a.taille - b.taille);
-        console.log("Sorted locaux by taille (ascending order): ", sortedLocaux);
-    
-        let selectedLocaux = [];
-        let totalTaille = 0;
-    
-        // Iterate over sorted locaux to select those that fit the number of students
-        for (let i = 0; i < sortedLocaux.length; i++) {
-        const local = sortedLocaux[i];
-        console.log(`Checking local: ${local.nom}, taille: ${local.taille}`);
-    
-        // Check if adding this local fits the required number of students
-        if (totalTaille + local.taille <= nbrInscrit) {
-            selectedLocaux.push(local);
-            totalTaille += local.taille;
-            console.log(`Selected ${local.nom} (taille: ${local.taille}), total taille so far: ${totalTaille}`);
-        } else {
-            console.log(`Skipping ${local.nom} (taille: ${local.taille}), total taille exceeds required: ${totalTaille}`);
-        }
-    
-        // Stop the loop if we've selected enough locaux
-        if (totalTaille >= nbrInscrit) {
-            console.log(`Reached required number of students: ${nbrInscrit}. Stopping selection.`);
-            break;
-        }
-        }
-    
-        // If the total size of selected locaux is less than required, log a warning
-        if (totalTaille < nbrInscrit) {
-        console.log(`Warning: Not enough locaux selected to accommodate ${nbrInscrit} students. Total taille: ${totalTaille}`);
-        } else {
-        console.log("Final selected locaux: ", selectedLocaux);
-        }
-    
-        // Update the new session with selected locaux
-        setNewSession((prevState) => ({
-        ...prevState,
-        locaux: selectedLocaux.map((local) => local.id),
-        }));
-    
-    }, [newSession.isManuelle, newSession.option, locaux, options, newSession]);
-    
-  
-
-  // Handle form submission
-  const handleAddSession = async (event: { preventDefault: () => void; }) => {
-    event.preventDefault();
-
-    // Ensure locaux are selected before submission
-    // if (!newSession.isManuelle && newSession.option) {
-    //   selectLocauxAutomatically();
-    // }
-
-    // Validate that locaux are selected
-    if (newSession.locaux.length === 0) {
-      console.error("No locaux selected for submission");
-      alert("Veuillez sélectionner au moins un local");
-      return;
-    }
-
-    const examPayload = {
-      departementId: newSession.departement,
-      enseignantId: newSession.enseignant,
-      optionId: newSession.option,
-      moduleId: newSession.module,
-      locauxIds: newSession.locaux,
-      date: newSession.date,
-      creneau: {
-        startTime: newSession.startTime,
-        endTime: newSession.endTime
-      }
-    };
-
-    console.log("Submitting exam with data:", examPayload);
-    
-    try {
-      const response = await axios.post("http://localhost:8088/api/exams", examPayload);
-      console.log("Exam created successfully:", response.data);
-      setShowExamModal(false);
-    } catch (error) {
-      console.error("Error creating exam:", error);
-      alert("Erreur lors de la création de l'examen");
-    }
-  };
 
 
   // Prepare the options for React Select (locaux)
