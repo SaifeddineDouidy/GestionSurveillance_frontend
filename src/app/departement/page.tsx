@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -32,7 +31,7 @@ const filteredDepartments = departments.filter((dept) =>
 
   const router = useRouter();
 
-const navigateToEnseignants = (departmentId: any) => {
+const navigateToEnseignants = (departmentId: number) => {
   if (router) {
     router.push(`/enseignant?departmentId=${departmentId}`);
   } else {

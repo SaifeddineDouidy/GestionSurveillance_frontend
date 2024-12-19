@@ -148,13 +148,14 @@ const filteredEnseignants = enseignants.filter((ens) =>
         </div>
 
         {/* Search Input */}
-<div className="mb-4">
-  <Input
-    placeholder="Rechercher par nom de l'enseignant"
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-  />
-</div>
+        <div className="mb-4">
+        <Input
+          placeholder="Rechercher par nom de l&apos;enseignant"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        </div>
 
         {/* Enseignants Table */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden">

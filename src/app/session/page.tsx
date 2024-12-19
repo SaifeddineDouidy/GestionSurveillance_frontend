@@ -39,7 +39,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+
 } from "@/components/ui/alert-dialog";
 
 type Session = {
@@ -58,7 +58,11 @@ type Session = {
   afternoonEnd2: string;
 };
 
-export default function SessionPage() {
+export default function SessionPage({ params }: { params: { sessionId: string } }) {
+
+  const router = useRouter();
+
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -79,7 +83,6 @@ export default function SessionPage() {
     afternoonStart2: "16:00",
     afternoonEnd2: "18:00",
   });
-  const router = useRouter();
 
   const openModal = () => setIsModalOpen(true);
 
