@@ -48,7 +48,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 type Session = {
   id: number;
   type: string;
-  isValid: boolean;
+  valid: boolean;
   startDate: string;
   endDate: string;
   morningStart1: string;
@@ -78,7 +78,7 @@ export default function SessionPage() {
     type: "",
     startDate: "",
     endDate: "",
-    isValid: "false",
+    valid: "false",
     morningStart1: "08:00",
     morningEnd1: "10:00",
     morningStart2: "10:00",
@@ -138,6 +138,7 @@ export default function SessionPage() {
         const response = await fetch("http://localhost:8088/api/session");
         if (response.ok) {
           const data: Session[] = await response.json();
+          console.log(data);
           setSessions(data);
         } else {
           console.error(
@@ -241,7 +242,7 @@ export default function SessionPage() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setNewSession((prevSession) => ({
       ...prevSession,
@@ -266,14 +267,14 @@ export default function SessionPage() {
     }
   };
 
-  const toggleValidation = async (sessionId: number, isValid: boolean) => {
+  const toggleValidation = async (sessionId: number, valid: boolean) => {
     try {
       const response = await fetch(
         `http://localhost:8088/api/session/${sessionId}/validate`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isValid }),
+          body: JSON.stringify({ valid }),
         }
       );
 
@@ -351,7 +352,7 @@ export default function SessionPage() {
         <div className="container mx-auto px-4 pt-24">
           {/* Add Session Button with Dialog */}
           <div className="flex mb-6">
-            <Dialog>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="blue">
                   <FaPlus className="mr-2" /> Ajouter une nouvelle session
@@ -534,7 +535,7 @@ export default function SessionPage() {
                         Annuler
                       </Button>
                     </DialogClose>
-                    <Button type="submit">Enregistrer la session</Button>
+                    <Button  variant="blue" type="submit">Enregistrer la session</Button>
                   </div>
                 </form>
               </DialogContent>
@@ -818,7 +819,7 @@ export default function SessionPage() {
               Annuler
             </Button>
           </DialogClose>
-          <Button type="submit">Enregistrer les modifications</Button>
+          <Button variant="blue" type="submit">Enregistrer les modifications</Button>
         </div>
       </form>
     </DialogContent>
@@ -839,9 +840,9 @@ export default function SessionPage() {
             <AlertDialogCancel onClick={closeDeleteModal}>
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSession}>
+            <Button variant="destructive"  onClick={handleDeleteSession}>
               Supprimer
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

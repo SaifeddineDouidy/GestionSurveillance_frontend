@@ -312,7 +312,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
       }
       try {
         const response = await axios.get(
-          `http://localhost:8088/api/options/departement/${newSession.departement}`
+          `http://localhost:8088/api/departements/${newSession.departement}/options`
         );
         setOptions(response.data);
       } catch (error) {

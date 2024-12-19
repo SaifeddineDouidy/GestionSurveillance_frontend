@@ -97,7 +97,7 @@ const navigateToEnseignants = (departmentId: any) => {
         `http://localhost:8088/api/departements/${currentDepartment.id}`,
         {
           departmentName: newDepartmentName,
-          enseignants: [],
+
         }
       );
 
