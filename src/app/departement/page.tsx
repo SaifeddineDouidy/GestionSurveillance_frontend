@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const DepartmentsPage = () => {
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
@@ -142,7 +143,14 @@ const navigateToEnseignants = (departmentId: any) => {
       <div className="bg-white rounded-lg shadow p-6">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
+        <div className="space-y-1">
           <h1 className="text-2xl font-bold">Departements ({departments.length})</h1>
+          <Link
+              href="/session"
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ← Back to Session
+            </Link></div>
           <div className="flex space-x-2">
             <Button variant="blue" onClick={() => alert("File upload placeholder")}>
               Choisir un fichier (.xls ou .csv)

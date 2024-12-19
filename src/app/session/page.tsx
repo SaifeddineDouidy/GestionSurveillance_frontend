@@ -41,6 +41,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 type Session = {
   id: number;
@@ -59,6 +62,12 @@ type Session = {
 };
 
 export default function SessionPage() {
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
+    const toggleUserMenu = () => {
+      setIsUserMenuOpen(!isUserMenuOpen);
+    };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -281,20 +290,60 @@ export default function SessionPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Navigation */}
+     
+     
+      {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
-        <div className="flex justify-between items-center">
+        <div className="container mx-auto flex justify-between items-center">
+          {/* Logo and Brand */}
+          <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Logo" className="h-14 ml-2 w-auto" />
-          </div>
-          <div className="flex items-center">
-            <FaSignInAlt
-              size={20}
-              className="text-gray-600 hover:text-gray-900 cursor-pointer"
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-14 ml-2 w-auto" // Properly resized logo
             />
           </div>
-        </div>
+            
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex items-center space-x-8">
+
+  <div className="relative">
+    <button
+      onClick={toggleUserMenu}
+      className="flex items-center text-gray-600 hover:text-gray-900"
+    >
+      <FontAwesomeIcon icon={faUser} className="text-lg" />
+    </button>
+    {isUserMenuOpen && (
+      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <ul className="py-1 text-sm text-gray-700">
+          <li>
+            <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">
+              Profile
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings" className="block px-4 py-2 hover:bg-gray-100">
+              Settings
+            </Link>
+          </li>
+          <li>
+            <Link href="/login" className="block px-4 py-2 text-red-600 hover:bg-gray-100">
+              Logout
+            </Link>
+          </li>
+        </ul>
+      </div>
+    )}
+  </div>
+</div>
+</div>
       </nav>
+     
+     
 
       {/* Content */}
       <div className="container mx-auto px-4 pt-10">
