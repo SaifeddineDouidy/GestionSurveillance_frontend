@@ -397,7 +397,6 @@ export default function OptionsPage() {
                 <Input
                   id="nbrInscrit"
                   type="number"
-                  type="number"
                   value={newOption.nbrInscrit}
                   onChange={(e) => setNewOption({ ...newOption, nbrInscrit: parseInt(e.target.value) })}
                   className="col-span-3"
