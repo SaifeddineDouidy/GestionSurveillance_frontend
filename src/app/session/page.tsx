@@ -79,27 +79,24 @@ export default function SessionPage() {
     afternoonStart2: "16:00",
     afternoonEnd2: "18:00",
   });
-  const [searchQuery, setSearchQuery] = useState("");
-  const filteredSessions = sessions.filter((session) =>
-    session.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    session.startDate.includes(searchQuery) ||
-    session.endDate.includes(searchQuery)
-  );
   const router = useRouter();
 
   const openModal = () => setIsModalOpen(true);
-  const handleSessionClick = (session: Session) => {
-    if (!session.valid) {
-      // Store the session in localStorage
-      localStorage.setItem('sessionId', JSON.stringify(session.id));
-      // Navigate to dashboard
-      router.push(`/dashboard?sessionId=${session.id}`);
-    }
-  };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setNewSession({ type: "", startDate: "", endDate: ""});
+    setNewSession({ type: "",
+      startDate: "",
+      endDate: "",
+      isValid: "false",
+      morningStart1: "08:00",
+      morningEnd1: "10:00",
+      morningStart2: "10:00",
+      morningEnd2: "12:00",
+      afternoonStart1: "14:00",
+      afternoonEnd1: "16:00",
+      afternoonStart2: "16:00",
+      afternoonEnd2: "18:00", });
   };
 
   const openEditModal = (session: Session) => {
@@ -121,6 +118,8 @@ export default function SessionPage() {
     setSessionToDelete(null);
     setIsDeleteModalOpen(false);
   };
+
+
 
   // Fetch sessions from backend
   useEffect(() => {
@@ -232,7 +231,7 @@ export default function SessionPage() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setNewSession((prevSession) => ({
       ...prevSession,
@@ -259,6 +258,7 @@ export default function SessionPage() {
 
   const toggleValidation = async (sessionId: number, isValid: boolean) => {
     try {
+      console.log(sessionId);
       const response = await fetch(
         `http://localhost:8088/api/session/${sessionId}/validate`,
         {
@@ -267,9 +267,13 @@ export default function SessionPage() {
           body: JSON.stringify({ isValid }),
         }
       );
-
+  
       if (response.ok) {
-        await refetchSessions(); // Refetch sessions after successful validation toggle
+        setSessions((prevSessions) =>
+          prevSessions.map((session) =>
+            session.id === sessionId ? { ...session, isValid } : session
+          )
+        );
       } else {
         throw new Error("Failed to toggle validation");
       }
@@ -278,6 +282,18 @@ export default function SessionPage() {
       alert("An error occurred while updating the validation status.");
     }
   };
+
+  const handleSessionClick = (session: Session) => {
+    if (!session.isValid) {
+      // Store the session in localStorage
+      localStorage.setItem("sessionId", JSON.stringify(session.id));
+      // Navigate to dashboard
+      router.push(`/dashboard?sessionId=${session.id}`);
+    } else {
+      alert("This session is validated and cannot be accessed.");
+    }
+  };
+  
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -302,7 +318,7 @@ export default function SessionPage() {
         <div className="container mx-auto px-4 pt-24">
           {/* Add Session Button with Dialog */}
           <div className="flex mb-6">
-            <Dialog>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="blue">
                   <FaPlus className="mr-2" /> Ajouter une nouvelle session
@@ -493,27 +509,15 @@ export default function SessionPage() {
           </div>
         </div>
 
-
         {/* Sessions Table */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-10">
-          {/* Search Bar */}
-<div className="mb-4">
-          <Input
-            placeholder="Rechercher par type, date de début, ou date de fin..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
-
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-bold text-gray-800">
               Sessions ({sessions.length})
             </h2>
           </div>
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-800">
+            <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2 text-gray-800">Type</th>
                 <th className="px-4 py-2 text-gray-800">Date de début</th>
@@ -521,12 +525,12 @@ export default function SessionPage() {
                 <th className="px-4 py-2 text-gray-800">Actions</th>
               </tr>
             </thead><tbody>
-  {filteredSessions.map((session) => (
+  {sessions.map((session) => (
     <tr
       key={session.id}
       className={`border-b cursor-pointer ${
-        session.valid
-          ? "bg-gray-200 text-gray-500" // Disabled row styling
+        session.isValid
+          ? "bg-gray-200 text-gray-500"
           : "bg-white hover:bg-gray-100"
       }`}
       onClick={() => handleSessionClick(session)}
@@ -540,13 +544,13 @@ export default function SessionPage() {
           <FaEdit
             size={16}
             className={`${
-              session.valid
+              session.isValid
                 ? "text-blue-300 cursor-not-allowed"
                 : "text-blue-500 hover:text-blue-700 cursor-pointer"
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (!session.valid) openEditModal(session);
+              if (!session.isValid) openEditModal(session);
             }}
           />
 
@@ -554,18 +558,18 @@ export default function SessionPage() {
           <FaTrash
             size={16}
             className={`${
-              session.valid
+              session.isValid
                 ? "text-red-300 cursor-not-allowed"
                 : "text-red-500 hover:text-red-700 cursor-pointer"
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (!session.valid) openDeleteModal(session.id);
+              if (!session.isValid) openDeleteModal(session.id);
             }}
           />
 
           {/* Validation Toggle */}
-          {session.valid ? (
+          {session.isValid ? (
             <div className="flex items-center">
               <FaCheckCircle
                 size={16}
@@ -595,7 +599,6 @@ export default function SessionPage() {
 </tbody>
 
           </table>
-          </div>
         </div>
       </div>
 
