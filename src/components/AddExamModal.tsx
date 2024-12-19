@@ -91,7 +91,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   showExamModal,
   setShowExamModal,
   selectedSlot,
-  onExamAdded,
+  onExamAdded, 
 }) => {
   const [departements, setDepartements] = useState<Department[]>([]);
   const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
@@ -251,7 +251,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
       console.log("Exam created successfully:", response.data);
       if (onExamAdded) {
         onExamAdded();
-      }
+      }
       setShowExamModal(false);
     } catch (error) {
       console.error("Error creating exam:", error);
@@ -498,7 +498,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
             <DialogClose asChild>
               <Button type="button" variant="outline">Annuler</Button>
             </DialogClose>
-            <Button type="submit">Enregistrer l'examen</Button>
+            <Button type="submit" variant="blue">Enregistrer l'examen</Button>
           </div>
         </form>
       </DialogContent>

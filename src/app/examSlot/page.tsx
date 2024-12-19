@@ -183,6 +183,7 @@ const ExamSlot = () => {
               day: date,
               timeSlot: { startTime, endTime },
             }}
+            // Pass the callback to refresh the list after adding an exam
             onExamAdded={handleExamAdded}
           />
         )}
