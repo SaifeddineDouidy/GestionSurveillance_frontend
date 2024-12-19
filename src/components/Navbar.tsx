@@ -59,7 +59,7 @@ export default function Navbar() {
   <Link href="/options" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">
     <FontAwesomeIcon icon={faCog} className="mr-2" /> Options
   </Link>
-  <Link href="/departments" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">
+  <Link href="/departement" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">
     <FontAwesomeIcon icon={faBuilding} className="mr-2" /> Départements
   </Link>
   <Link href="/locaux" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">

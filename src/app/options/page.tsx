@@ -164,7 +164,7 @@ export default function OptionsPage() {
     return (
         <div className="bg-gray-100 p-8">
             <Navbar />
-            <div className="mt-4 p-10">
+            <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-2xl font-bold">Options ({filteredOptions.length})</h1>
                     <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
@@ -396,6 +396,7 @@ export default function OptionsPage() {
                 </Label>
                 <Input
                   id="nbrInscrit"
+                  type="number"
                   type="number"
                   value={newOption.nbrInscrit}
                   onChange={(e) => setNewOption({ ...newOption, nbrInscrit: parseInt(e.target.value) })}
