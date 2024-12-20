@@ -3,14 +3,46 @@ import Navbar from "@/components/Navbar";
 import React, { useState, useEffect, useRef } from "react";
 import { FiArrowRight, FiArrowLeft } from "react-icons/fi"; // Arrow Icons
 
-const SurveillanceTable = () => {
-  const [session, setSession] = useState(null);
-  const [teachers, setTeachers] = useState([]); // Start with an empty array for teachers
-  const [departments, setDepartments] = useState([]); // Department data
-  const [selectedDepartment, setSelectedDepartment] = useState(null); // Selected department ID
-  const [loading, setLoading] = useState(true); // Spinner loading state
+// Define TypeScript interfaces for your data structures
+interface Session {
+  id: number;
+  startDate: string;
+  endDate: string;
+  morningStart1: string;
+  morningEnd1: string;
+  morningStart2: string;
+  morningEnd2: string;
+  afternoonStart1: string;
+  afternoonEnd1: string;
+  afternoonStart2: string;
+  afternoonEnd2: string;
+}
 
-  const tableRef = useRef(null); // Ref for horizontal scroll
+interface Department {
+  id: number;
+  departmentName: string;
+}
+
+interface Teacher {
+  id: number;
+  name: string;
+  dispense: boolean;
+}
+type Enseignant = {
+  id: number;
+  name: string;
+  email: string;
+  dispense: boolean;
+};
+
+const SurveillanceTable: React.FC = () => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [Enseignants, setEnseignants] = useState<Enseignant[]>([]); // Teachers array
+  const [departments, setDepartments] = useState<Department[]>([]); // Departments array
+  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null); // Selected department ID
+  const [loading, setLoading] = useState<boolean>(true); // Spinner loading state
+
+  const tableRef = useRef<HTMLDivElement>(null); // Ref for horizontal scroll
 
   // Fetch session data
   useEffect(() => {
@@ -22,7 +54,7 @@ const SurveillanceTable = () => {
           if (!response.ok) {
             throw new Error(`Error fetching session: ${response.statusText}`);
           }
-          const data = await response.json();
+          const data: Session = await response.json();
           setSession(data);
         } catch (error) {
           console.error("Error fetching session:", error);
@@ -37,11 +69,11 @@ const SurveillanceTable = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await fetch('http://localhost:8088/api/departements'); // Replace with your actual endpoint for departments
+        const response = await fetch("http://localhost:8088/api/departements");
         if (!response.ok) {
           throw new Error(`Error fetching departments: ${response.statusText}`);
         }
-        const data = await response.json();
+        const data: Department[] = await response.json();
         setDepartments(data); // Set the departments state
         setLoading(false); // Stop the spinner when data is fetched
       } catch (error) {
@@ -58,13 +90,15 @@ const SurveillanceTable = () => {
       const fetchTeachersByDepartment = async () => {
         setLoading(true); // Show spinner when fetching teachers
         try {
-          const response = await fetch(`http://localhost:8088/api/departements/${selectedDepartment}/enseignants`); // Replace with your actual endpoint for teachers by department
+          const response = await fetch(
+            `http://localhost:8088/api/departements/${selectedDepartment}/enseignants`
+          );
           if (!response.ok) {
             throw new Error(`Error fetching teachers: ${response.statusText}`);
           }
-          const data = await response.json();
+          const data: Enseignant[] = await response.json();
           // Filter teachers to only those with dispense = false
-          setTeachers(data.filter((teacher: { dispense: any; }) => !teacher.dispense)); 
+          setEnseignants(data.filter((teacher) => !teacher.dispense));
           setLoading(false); // Stop the spinner when data is fetched
         } catch (error) {
           console.error("Error fetching teachers:", error);
@@ -82,13 +116,13 @@ const SurveillanceTable = () => {
   // Generate dates dynamically
   const startDate = new Date(session.startDate);
   const endDate = new Date(session.endDate);
-  const dates = [];
+  const dates: string[] = [];
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     dates.push(new Date(d).toISOString().split("T")[0]);
   }
 
   // Generate time slots dynamically
-  const timeSlots = [
+  const timeSlots: string[] = [
     `${session.morningStart1} - ${session.morningEnd1}`,
     `${session.morningStart2} - ${session.morningEnd2}`,
     `${session.afternoonStart1} - ${session.afternoonEnd1}`,
@@ -96,7 +130,7 @@ const SurveillanceTable = () => {
   ];
 
   // Function to scroll horizontally
-  const scrollTable = (direction) => {
+  const scrollTable = (direction: "left" | "right") => {
     const scrollAmount = 300; // Amount of scroll
     if (tableRef.current) {
       tableRef.current.scrollLeft += direction === "right" ? scrollAmount : -scrollAmount;
@@ -108,14 +142,16 @@ const SurveillanceTable = () => {
       <Navbar />
       <h1 className="text-xl font-bold text-center mb-4">Surveillances par départements</h1>
 
-      {/* Department Dropdown Spinner */}
+      {/* Department Dropdown */}
       <div className="mb-4 text-center">
         <select
           className="border p-2 rounded"
-          onChange={(e) => setSelectedDepartment(e.target.value)}
+          onChange={(e) => setSelectedDepartment(Number(e.target.value))}
           value={selectedDepartment || ""}
         >
-          <option value="" disabled>Select Department</option>
+          <option value="" disabled>
+            Select Department
+          </option>
           {departments.map((department) => (
             <option key={department.id} value={department.id}>
               {department.departmentName}
@@ -169,9 +205,9 @@ const SurveillanceTable = () => {
             </tr>
           </thead>
           <tbody>
-            {teachers.map((teacher, rowIndex) => (
+            {Enseignants.map((Enseignant, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
-                <td className="border p-2 w-32 text-center">{teacher.name}</td>
+                <td className="border p-2 w-32 text-center">{Enseignant.name}</td>
                 {dates.map(() =>
                   timeSlots.map((slot, colIndex) => (
                     <td key={`${rowIndex}-${colIndex}`} className="border p-2 w-32 text-center">

@@ -60,10 +60,18 @@ export default function AuthenticationPage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-50">
-      <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+    <div
+      className="flex justify-center items-center h-screen"
+      style={{
+        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)), url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+        <div className="animated-border w-1/3 flex justify-center items-center p-4 rounded-lg">
+      <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md align-middle">
         <CardHeader>
-          <h1 className="text-2xl font-bold mb-6 text-black text-center">Connexion</h1>
+          <h1 className="text-2xl font-bold mb-6 text-black text-center">Se Connecter</h1>
         </CardHeader>
         <CardContent>
           {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
@@ -100,9 +108,50 @@ export default function AuthenticationPage() {
           </form>
           <br></br>
 
-          <a >Mot de passe oublié ?</a>
+          <div className="text-center mt-4">
+            <a
+              className="text-sm text-blue-500 hover:underline cursor-pointer"
+              onClick={() => router.push("/forgot-password")}
+            >
+              Mot de passe oublié ?
+            </a>
+          </div>
         </CardContent>
       </Card>
+      </div>
+      <style jsx>{`
+        .animated-border {
+          position: relative;
+          background: linear-gradient(90deg, white, #2463eb, #fdaf4d, #f8826e, #8f4818);
+          background-size: 300% 300%;
+          animation: animatedGradient 20s linear infinite;
+          border-radius: 16px;
+        }
+
+        .animated-border::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: -1;
+          background-color: rgba(255, 255, 255, 0.1); /* Transparent background */
+          border-radius: inherit;
+        }
+
+        @keyframes animatedGradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+      `}</style>
     </div>
   );
 }

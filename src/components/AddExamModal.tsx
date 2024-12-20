@@ -33,6 +33,7 @@ interface SelectedSlot {
     id: string;
     nom: string;
     taille: number;
+    disponible: boolean;
   }
 
   export interface Department {

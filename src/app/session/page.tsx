@@ -108,7 +108,20 @@ export default function SessionPage() {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setNewSession({ type: "", startDate: "", endDate: ""});
+    setNewSession({
+      type: "",
+      startDate: "",
+      endDate: "",
+      valid: "false",
+      morningStart1: "08:00",
+      morningEnd1: "10:00",
+      morningStart2: "10:00",
+      morningEnd2: "12:00",
+      afternoonStart1: "14:00",
+      afternoonEnd1: "16:00",
+      afternoonStart2: "16:00",
+      afternoonEnd2: "18:00",
+    });
   };
 
   const openEditModal = (session: Session) => {

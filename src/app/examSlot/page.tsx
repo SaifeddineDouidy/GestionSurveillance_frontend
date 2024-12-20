@@ -9,10 +9,16 @@ import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
+
 interface Exam {
   id: number;
-  module: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  departement: string;
   enseignant: string;
+  option: string;
+  module: string;
   locaux: string[];
 }
 
@@ -24,7 +30,11 @@ const ExamSlot = () => {
   const endTime = searchParams.get("endTime");
 
   const [exams, setExams] = useState<Exam[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  
   const [showExamModal, setShowExamModal] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +44,7 @@ const ExamSlot = () => {
     }
   }, [date, startTime, endTime]);
 
+  
   const fetchExams = async () => {
     try {
       setIsLoading(true);
@@ -69,15 +80,28 @@ const ExamSlot = () => {
     }
   };
 
-  
-  
   const handleUpdate = (examId: number) => {
-    console.log(`Update exam with ID: ${examId}`);
+    const examToUpdate = exams.find((exam) => exam.id === examId);
+    if (examToUpdate) {
+      setSelectedExam(examToUpdate);
+      setShowEditModal(true);
+    }
   };
-
+  
   const handleDelete = async (examId: number) => {
-    console.log(`Delete exam with ID: ${examId}`);
+    const confirmDelete = confirm("Are you sure you want to delete this exam?");
+    if (!confirmDelete) return;
+  
+    try {
+      await axios.delete(`http://localhost:8088/api/exams/${examId}`);
+      alert("Exam deleted successfully");
+      fetchExams(); // Refresh the exam list
+    } catch (error) {
+      console.error("Error deleting exam:", error);
+      alert("Failed to delete exam. Please try again.");
+    }
   };
+  
 
   const handleExamAdded = () => {
     
@@ -152,12 +176,7 @@ const ExamSlot = () => {
                     <td className="px-4 py-2">{exam.locaux.join(", ")}</td>
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
-                        <button
-                          className="text-blue-500 hover:text-blue-600"
-                          onClick={() => handleUpdate(exam.id)}
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
+                        
                         <button
                           className="text-red-500 hover:text-red-600"
                           onClick={() => handleDelete(exam.id)}
@@ -187,6 +206,9 @@ const ExamSlot = () => {
             onExamAdded={handleExamAdded}
           />
         )}
+
+
+
       </div>
     </div>
   );
