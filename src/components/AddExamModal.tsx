@@ -66,6 +66,7 @@ interface Exam {
   enseignant: Enseignant;
   option: Option;
   module: Module;
+  sessionId: string;
 }
 
 
@@ -86,6 +87,7 @@ interface SessionState {
   startTime: string | undefined;
   endTime: string | undefined;
   isManuelle: boolean;
+  sessionId: string | null;
 }
 
 const AddExamModal: React.FC<AddExamModalProps> = ({
@@ -99,6 +101,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   const [options, setOptions] = useState<Option[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [locaux, setLocaux] = useState<Local[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   // Initialize session state
   const [newSession, setNewSession] = useState<SessionState>({
@@ -111,8 +114,18 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
     startTime: selectedSlot?.timeSlot?.startTime,
     endTime: selectedSlot?.timeSlot?.endTime,
     isManuelle: false,
+    sessionId: sessionId,
   });
 
+  useEffect(() => {
+      const storedSessionId = localStorage.getItem("sessionId");
+      if (storedSessionId) {
+        setSessionId(storedSessionId);
+      } else {
+        console.error("No sessionId found in localStorage.");
+      }
+    }, []);
+  
   // Modified automatic locaux selection logic
   const selectLocauxAutomatically = () => {
     console.log("=== Starting Automatic Locaux Selection ===");
@@ -242,6 +255,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
       option: parseInt(newSession.option),
       module: parseInt(newSession.module),
       locauxIds: newSession.locaux.map((id) => parseInt(id)),
+      sessionId: sessionId,
     };
 
     console.log("Submitting exam payload:");
