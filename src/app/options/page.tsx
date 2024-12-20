@@ -18,7 +18,17 @@ interface Department {
 }
 
 interface Option {
-  id:number,
+  id: number;
+  nomDeFiliere: string;
+  annee: string;
+  nbrInscrit: number;
+  departement?: Department;
+  modules?: any[]; // Added since your API returns this
+}
+
+
+// Create a new interface for the initial state to handle null values
+interface NewOption {
   nomDeFiliere: string;
   annee: string;
   nbrInscrit: number;
@@ -30,28 +40,29 @@ export default function OptionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [department, setDepartment] = useState<Department>();
-
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [optionToDelete, setOptionToDelete] = useState<number | null>(null);
-  const [newOption, setNewOption] = useState({
+  
+  // Initialize with proper types
+  const [newOption, setNewOption] = useState<NewOption>({
     nomDeFiliere: "",
     annee: "",
     nbrInscrit: 0,
-    departement: { id: 0 }, 
-  });  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editOption, setEditOption] = useState<Option | null>(null);
+    departement: {
+      id: 0,
+      departmentName: ""
+    }
+  });
 
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editOption, setEditOption] = useState<Option | null>(null);
 
   const router = useRouter();
 
   const filteredOptions = options.filter((option) =>
-    [option.nomDeFiliere, option.annee, option.nbrInscrit]
-      .filter((field) => typeof field === "string") // Exclude null/undefined values
+    [option.nomDeFiliere, option.annee, option.nbrInscrit.toString()]
       .map((field) => field.toLowerCase())
       .some((field) => field.includes(searchTerm.toLowerCase()))
   );
@@ -69,7 +80,6 @@ export default function OptionsPage() {
 
         if (departmentsResponse.ok) {
           const departmentsData: Department[] = await departmentsResponse.json();
-          console.log(departmentsData)
           setDepartments(departmentsData);
         }
       } catch (error) {
@@ -90,7 +100,6 @@ export default function OptionsPage() {
     setIsDeleteModalOpen(false);
   };
 
-  // Handle delete session
   const handleDeleteOption = async () => {
     if (optionToDelete === null) return;
     try {
@@ -101,17 +110,13 @@ export default function OptionsPage() {
       if (response.ok) {
         setOptions(options.filter((option) => option.id !== optionToDelete));
         closeDeleteModal();
-      } else {
-        console.error("Failed to delete Option. Response status:", response.status);
       }
     } catch (error) {
       console.error("Error deleting Option:", error);
     }
   };
 
-  // Handle add Option
   const handleAddOption = async () => {
-    console.log(newOption)
     try {
       const response = await fetch("http://localhost:8088/api/options", {
         method: "POST",
@@ -120,43 +125,86 @@ export default function OptionsPage() {
         },
         body: JSON.stringify(newOption),
       });
+      
       if (response.ok) {
-        const addedOption = await response.json();
+        const addedOption: Option = await response.json();
         setOptions([...options, addedOption]);
         setIsAddModalOpen(false);
-        setNewOption({ nomDeFiliere: "", annee: "" ,nbrInscrit:0,departement: { id: 0 }});
-      } else {
-        console.error("Failed to add Option. Response status:", response.status);
+        // Reset the form with initial values
+        setNewOption({
+          nomDeFiliere: "",
+          annee: "",
+          nbrInscrit: 0,
+          departement: {
+            id: 0,
+            departmentName: ""
+          }
+        });
+        console.log(addedOption)
       }
     } catch (error) {
       console.error("Error adding Option:", error);
     }
   };
 
-  // Handle edit Option
+  
+  const handleEditClick = (option: Option) => {
+    // If the option doesn't have department info, set a default
+    const optionWithDepartment: Option = {
+      ...option,
+      departement: option.departement || {
+        id: 0,
+        departmentName: ""
+      }
+    };
+    setEditOption(optionWithDepartment);
+    setIsEditModalOpen(true);
+  };
+
   const handleEditOption = async () => {
     if (!editOption) return;
-  console.log(editOption)
+console.log(editOption)
+    // Ensure we have all required fields
+    const editPayload = {
+      id: editOption.id,
+      nomDeFiliere: editOption.nomDeFiliere,
+      annee: editOption.annee,
+      nbrInscrit: editOption.nbrInscrit,
+      modules: editOption.modules || [],
+      departement: editOption.departement || {
+        id: 0,
+        departmentName: ""
+      }
+    };
+
     try {
       const response = await fetch(`http://localhost:8088/api/options/${editOption.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editOption),
+        body: JSON.stringify(editPayload),
       });
+
       if (response.ok) {
         const updatedOption = await response.json();
-        setOptions(
-          options.map((option) => (option.id === updatedOption.id ? updatedOption : option))
-        );
+        // Ensure the updated option has the department info
+        const finalUpdatedOption = {
+          ...updatedOption,
+          departement: editOption.departement // Keep the department info from the edit form
+        };
+        
+        setOptions(options.map((option) => 
+          option.id === finalUpdatedOption.id ? finalUpdatedOption : option
+        ));
         setIsEditModalOpen(false);
         setEditOption(null);
       } else {
-        console.error("Failed to edit Option. Response status:", response.status);
+        const errorText = await response.text();
+        console.error("Failed to update option. Status:", response.status, "Error:", errorText);
       }
     } catch (error) {
-      console.error("Error editing Option:", error);
+      console.error("Error updating option:", error);
     }
   };
 
@@ -203,38 +251,35 @@ export default function OptionsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredOptions.map((option) => (
-                <tr
-                  key={option.id}
-                  className="bg-white cursor-pointer hover:bg-gray-100"
-                  onClick={() => router.push(`/module?optionId=${option.id}`)}
-                >
-                  <td className="px-4 py-2">{option.nomDeFiliere}</td>
-                  <td className="px-4 py-2">{option.annee}</td>
-                  <td className="px-4 py-2">{option.nbrInscrit}</td>
-                  <td
-                    className="px-1 py-2"
-                    onClick={(e) => e.stopPropagation()} // Prevent row click event
-                  >
-                    <button
-                      className="text-blue-500 hover:text-blue-700 mr-2"
-                      onClick={() => {
-                        setEditOption(option); 
-                        setIsEditModalOpen(true); 
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faEdit} />
-                    </button>
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => openDeleteModal(option.id)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+      {filteredOptions.map((option) => (
+        <tr
+          key={option.id}
+          className="bg-white cursor-pointer hover:bg-gray-100"
+          onClick={() => router.push(`/module?optionId=${option.id}`)}
+        >
+          <td className="px-4 py-2">{option.nomDeFiliere}</td>
+          <td className="px-4 py-2">{option.annee}</td>
+          <td className="px-4 py-2">{option.nbrInscrit}</td>
+          <td
+            className="px-1 py-2"
+            onClick={(e) => e.stopPropagation()} // Prevent row click event
+          >
+            <button
+              className="text-blue-500 hover:text-blue-700 mr-2"
+              onClick={() => handleEditClick(option)}
+            >
+              <FontAwesomeIcon icon={faEdit} />
+            </button>
+            <button
+              className="text-red-500 hover:text-red-700"
+              onClick={() => openDeleteModal(option.id)}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
           </table>
         </div>
 
@@ -262,42 +307,42 @@ export default function OptionsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Modifier une Option</DialogTitle>
-    </DialogHeader>
-    {editOption && (
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="departmentId" className="text-right">
-            Département
-          </Label>
-          <select
-            id="departmentId"
-            value={editOption?.departement?.id || 0}
-            onChange={(e) =>
-              setEditOption({
-                ...editOption,
-                departement: {
-                  id: +e.target.value,
-                  departmentName: "",
-                },
-              })
-            }
-            className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
-          >
-            <option value={0} disabled>
-              Sélectionner un département
-            </option>
-            {departments.map((department) => (
-              <option key={department.id} value={department.id}>
-                {department.departmentName}
-              </option>
-            ))}
-          </select>
-        </div>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Modifier une Option</DialogTitle>
+        </DialogHeader>
+        {editOption && (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="editDepartment" className="text-right">
+                Département
+              </Label>
+              <select
+                id="editDepartment"
+                value={editOption.departement?.id || 0}
+                onChange={(e) => {
+                  const selectedDepartment = departments.find(
+                    (dept) => dept.id === Number(e.target.value)
+                  );
+                  setEditOption({
+                    ...editOption,
+                    departement: {
+                      id: Number(e.target.value),
+                      departmentName: selectedDepartment?.departmentName || ""
+                    }
+                  });
+                }}
+                className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+              >
+                <option value={0}>Sélectionner un département</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.departmentName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="nom" className="text-right">
@@ -363,7 +408,10 @@ export default function OptionsPage() {
                   <select
                     id="departmentId"
                     value={newOption.departement.id}
-                    onChange={(e) => setNewOption({ ...newOption, departement: { id: +e.target.value }  })}
+                    onChange={(e) => setNewOption({ ...newOption, departement: {
+                      id: +e.target.value,
+                      departmentName: ""
+                    }  })}
                     className="col-span-3 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                   >
                     <option value={0} disabled>

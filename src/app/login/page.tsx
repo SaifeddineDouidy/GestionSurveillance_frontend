@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -98,9 +99,14 @@ export default function AuthenticationPage() {
               {loading ? "Connexion en cours..." : "Connexion"}
             </Button>
           </form>
-          <br></br>
-
-          <a >Mot de passe oublié ?</a>
+          <div className="text-center mt-4">
+            <a
+              className="text-sm text-blue-500 hover:underline cursor-pointer"
+              onClick={() => router.push("/forgot-password")}
+            >
+              Mot de passe oublié ?
+            </a>
+          </div>
         </CardContent>
       </Card>
     </div>
