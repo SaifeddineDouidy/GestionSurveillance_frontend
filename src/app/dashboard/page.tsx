@@ -1,120 +1,199 @@
-"use client"
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-import { Line } from "react-chartjs-2";
+import Navbar from "@/components/Navbar";
+import axios from "axios";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   Title,
   Tooltip,
   Legend,
-  LineElement,
+  BarElement,
   CategoryScale,
   LinearScale,
-  PointElement, // Ensure PointElement is imported
 } from "chart.js";
 import Link from "next/link";
-import Navbar from "@/components/Navbar"; // Assuming a Navbar component is available
 
-ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement // Register PointElement to avoid the error
-);
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-const chartData = {
-  labels: ["Nov 6", "Nov 7", "Nov 8"],
-  datasets: [
-    {
-      label: "Exams Performance",
-      data: [30, 40, 45],
-      borderColor: "rgba(75, 192, 192, 1)",
-      backgroundColor: "rgba(75, 192, 192, 0.2)",
-      fill: true,
-    },
-  ],
-};
+interface Exam {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  departement: string;
+  enseignant: string;
+  option: string;
+  module: string;
+}
+
+interface Stats {
+  exams: number;
+  enseignants: number;
+  departments: number;
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth: number;
+  }[];
+}
 
 export default function DashboardPage() {
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [stats, setStats] = useState<Stats>({ exams: 0, enseignants: 0, departments: 0 });
+  const [chartData, setChartData] = useState<ChartData>({
+    labels: [],
+    datasets: [],
+  });
+  const [recentExams, setRecentExams] = useState<Exam[]>([]);
+  const [chartOptions, setChartOptions] = useState({});
+  
 
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
+  useEffect(() => {
+    fetchStats();
+    fetchChartData();
+    fetchRecentExams();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get("http://localhost:8088/api/dashboard/stats");
+      setStats(response.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchChartData = async () => {
+    try {
+      const response = await axios.get("http://localhost:8088/api/dashboard/department-distribution");
+
+      const maxValue = Math.max(...response.data.values);
+
+      setChartData({
+        labels: response.data.labels,
+        datasets: [
+          {
+            label: "Enseignants per Department",
+            data: response.data.values,
+            backgroundColor: "rgba(54, 162, 235, 0.5)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+        ],
+      });
+
+      setChartOptions({
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: maxValue + 1,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+    }
+  };
+  
+
+  const fetchRecentExams = async () => {
+    try {
+      const response = await axios.get("http://localhost:8088/api/dashboard/recent-exams");
+      setRecentExams(response.data);
+    } catch (error) {
+      console.error("Error fetching recent exams:", error);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="p-14">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Dashboard</h1>
+          <Link href="/session" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+            ← Back to Sessions
+          </Link>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-white shadow-lg p-4 rounded-xl">
+            <h2 className="text-gray-800 text-md mb-2">Exams</h2>
+            <p className="text-4xl font-semibold text-indigo-600">{stats.exams}</p>
+          </Card>
+          <Card className="bg-white shadow-lg p-4 rounded-xl">
+            <h2 className="text-gray-800 text-md mb-2">Enseignants</h2>
+            <p className="text-4xl font-semibold text-indigo-600">{stats.enseignants}</p>
+          </Card>
+          <Card className="bg-white shadow-lg p-4 rounded-xl">
+            <h2 className="text-gray-800 text-md mb-2">Departments</h2>
+            <p className="text-4xl font-semibold text-indigo-600">{stats.departments}</p>
+          </Card>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Bar Chart */}
+          <Card className="bg-white shadow-lg p-6 rounded-xl">
+  <h3 className="text-lg font-semibold mb-4 text-gray-900">Enseignants per Department</h3>
+  {chartData.datasets.length > 0 && chartData.datasets[0].data.length > 0 ? (
+    <Bar
+      data={chartData}
+      options={{
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: Math.max(...chartData.datasets[0].data) + 1, // Dynamic max value
+          },
+        },
+      }}
+      height={230}
+    />
+  ) : (
+    <p className="text-gray-500 text-center">No data available for the chart.</p>
+  )}
+</Card>
+{/* Recent Exams */}
+<Card className="bg-white shadow-lg p-6 rounded-xl">
+  <h3 className="text-lg font-semibold mb-4 text-gray-900">Recent Exams</h3>
+  {recentExams.length > 0 ? (
+    <div className="overflow-x-auto rounded-lg">
+      <table className="table-auto w-full text-left border-collapse border border-gray-300 rounded-lg">
+        <thead className="bg-gray-200">
+          <tr style={{ backgroundColor: "rgba(54, 162, 235, 0.5)" }}>
+            <th className="px-4 py-2 text-white">Module</th>
+            <th className="px-4 py-2 text-white">Option</th>
+            <th className="px-4 py-2 text-white">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recentExams.map((exam, index) => (
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="px-4 py-2 border-t border-gray-300">{exam.module}</td>
+              <td className="px-4 py-2 border-t border-gray-300">{exam.option}</td>
+              <td className="px-4 py-2 border-t border-gray-300">{exam.date}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <p className="text-gray-500 text-center">No recent exams available.</p>
+  )}
+</Card>
 
 
-      <div className=""> {/* Add padding to prevent content from hiding behind navbar */}
-          <div className="mt-8 mb-6">
-            <div className="flex justify-between items-center mb-8">
-              <div className="space-y-1">
-                <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
-                <Link href="/session" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                  ← Back to Sessions
-                </Link>
-              </div>
-            </div>
-
-            {/* Stats Cards Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-white shadow-lg p-6 rounded-xl hover:shadow-2xl transition duration-300 ease-in-out">
-                <div className="flex flex-col items-center">
-                  <span className="text-gray-500 text-sm mb-2">Exams</span>
-                  <span className="text-4xl font-semibold text-indigo-600">7</span>
-                  <span className="text-gray-500 text-sm mt-2">Nombre total d'exams</span>
-                </div>
-              </Card>
-
-              <Card className="bg-white shadow-lg p-6 rounded-xl hover:shadow-2xl transition duration-300 ease-in-out">
-                <div className="flex flex-col items-center">
-                  <span className="text-gray-500 text-sm mb-2">Enseignants</span>
-                  <span className="text-4xl font-semibold text-indigo-600">15</span>
-                  <span className="text-gray-500 text-sm mt-2">Nombre total d'enseignants</span>
-                </div>
-              </Card>
-            </div>
-
-            {/* Main Dashboard Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Exams Overview Chart */}
-              <Card className="bg-white shadow-lg p-6 rounded-xl hover:shadow-2xl transition duration-300 ease-in-out">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Exams Overview</h3>
-                <Line data={chartData} height={320} />
-              </Card>
-
-              {/* Recent Exams Section */}
-              <Card className="bg-white shadow-lg p-6 rounded-xl hover:shadow-2xl transition duration-300 ease-in-out">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Recent Exams</h3>
-                <ul className="space-y-4 text-gray-700">
-                  <li className="flex justify-between text-gray-800">
-                    <span>Math</span>
-                    <span className="text-green-600">90%</span>
-                  </li>
-                  <li className="flex justify-between text-gray-800">
-                    <span>Physics</span>
-                    <span className="text-yellow-600">85%</span>
-                  </li>
-                </ul>
-              </Card>
-            </div>
-          </div>
         </div>
       </div>
+    </div>
   );
 }

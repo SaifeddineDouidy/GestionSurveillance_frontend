@@ -225,9 +225,10 @@ export default function LocauxPage() {
   };
 
   return (
-    <div className="bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 p-8 ">
       <Navbar />
-      <div className="mt-4 p-10">
+      <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">
@@ -435,7 +436,7 @@ export default function LocauxPage() {
                   <Label className="text-right">Type</Label>
                   <RadioGroup
                     value={editLocal.type}
-                    onValueChange={(value) =>
+                    onValueChange={(value: any) =>
                       setEditLocal({ ...editLocal, type: value })
                     }
                     className="col-span-3 flex space-x-4"
@@ -506,7 +507,7 @@ export default function LocauxPage() {
                 <Label className="text-right">Type</Label>
                 <RadioGroup
                   value={newLocal.type}
-                  onValueChange={(value) =>
+                  onValueChange={(value: any) =>
                     setNewLocal({ ...newLocal, type: value })
                   }
                   className="col-span-3 flex space-x-4"
@@ -535,6 +536,7 @@ export default function LocauxPage() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
     </div>
   );
 }

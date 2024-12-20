@@ -41,11 +41,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 type Session = {
   id: number;
   type: string;
-  isValid: boolean;
+  valid: boolean;
   startDate: string;
   endDate: string;
   morningStart1: string;
@@ -59,6 +62,12 @@ type Session = {
 };
 
 export default function SessionPage() {
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
+    const toggleUserMenu = () => {
+      setIsUserMenuOpen(!isUserMenuOpen);
+    };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -69,7 +78,7 @@ export default function SessionPage() {
     type: "",
     startDate: "",
     endDate: "",
-    isValid: "false",
+    valid: "false",
     morningStart1: "08:00",
     morningEnd1: "10:00",
     morningStart2: "10:00",
@@ -79,14 +88,42 @@ export default function SessionPage() {
     afternoonStart2: "16:00",
     afternoonEnd2: "18:00",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredSessions = sessions.filter((session) =>
+    session.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    session.startDate.includes(searchQuery) ||
+    session.endDate.includes(searchQuery)
+  );
   const router = useRouter();
 
   const openModal = () => setIsModalOpen(true);
+  const handleSessionClick = (session: Session) => {
+    if (!session.valid) {
+      // Store the session in localStorage
+      localStorage.setItem('sessionId', JSON.stringify(session.id));
+      // Navigate to dashboard
+      router.push(`/dashboard?sessionId=${session.id}`);
+    }
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setNewSession({ type: "", startDate: "", endDate: "" });
+    setNewSession({
+      type: "",
+      startDate: "",
+      endDate: "",
+      valid: "false",
+      morningStart1: "08:00",
+      morningEnd1: "10:00",
+      morningStart2: "10:00",
+      morningEnd2: "12:00",
+      afternoonStart1: "14:00",
+      afternoonEnd1: "16:00",
+      afternoonStart2: "16:00",
+      afternoonEnd2: "18:00",
+    });
   };
+  
 
   const openEditModal = (session: Session) => {
     setEditSession(session);
@@ -115,6 +152,7 @@ export default function SessionPage() {
         const response = await fetch("http://localhost:8088/api/session");
         if (response.ok) {
           const data: Session[] = await response.json();
+          console.log(data);
           setSessions(data);
         } else {
           console.error(
@@ -243,14 +281,14 @@ export default function SessionPage() {
     }
   };
 
-  const toggleValidation = async (sessionId: number, isValid: boolean) => {
+  const toggleValidation = async (sessionId: number, valid: boolean) => {
     try {
       const response = await fetch(
         `http://localhost:8088/api/session/${sessionId}/validate`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isValid }),
+          body: JSON.stringify({ valid }),
         }
       );
 
@@ -267,20 +305,60 @@ export default function SessionPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Navigation */}
+     
+     
+      {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
-        <div className="flex justify-between items-center">
+        <div className="container mx-auto flex justify-between items-center">
+          {/* Logo and Brand */}
+          <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Logo" className="h-14 ml-2 w-auto" />
-          </div>
-          <div className="flex items-center">
-            <FaSignInAlt
-              size={20}
-              className="text-gray-600 hover:text-gray-900 cursor-pointer"
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-14 ml-2 w-auto" // Properly resized logo
             />
           </div>
-        </div>
+            
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex items-center space-x-8">
+
+  <div className="relative">
+    <button
+      onClick={toggleUserMenu}
+      className="flex items-center text-gray-600 hover:text-gray-900"
+    >
+      <FontAwesomeIcon icon={faUser} className="text-lg" />
+    </button>
+    {isUserMenuOpen && (
+      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <ul className="py-1 text-sm text-gray-700">
+          <li>
+            <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">
+              Profile
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings" className="block px-4 py-2 hover:bg-gray-100">
+              Settings
+            </Link>
+          </li>
+          <li>
+            <Link href="/login" className="block px-4 py-2 text-red-600 hover:bg-gray-100">
+              Logout
+            </Link>
+          </li>
+        </ul>
+      </div>
+    )}
+  </div>
+</div>
+</div>
       </nav>
+     
+     
 
       {/* Content */}
       <div className="container mx-auto px-4 pt-10">
@@ -288,7 +366,7 @@ export default function SessionPage() {
         <div className="container mx-auto px-4 pt-24">
           {/* Add Session Button with Dialog */}
           <div className="flex mb-6">
-            <Dialog>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="blue">
                   <FaPlus className="mr-2" /> Ajouter une nouvelle session
@@ -471,7 +549,7 @@ export default function SessionPage() {
                         Annuler
                       </Button>
                     </DialogClose>
-                    <Button type="submit">Enregistrer la session</Button>
+                    <Button  variant="blue" type="submit">Enregistrer la session</Button>
                   </div>
                 </form>
               </DialogContent>
@@ -479,15 +557,27 @@ export default function SessionPage() {
           </div>
         </div>
 
+
         {/* Sessions Table */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-10">
+          {/* Search Bar */}
+<div className="mb-4">
+          <Input
+            placeholder="Rechercher par type, date de début, ou date de fin..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-bold text-gray-800">
               Sessions ({sessions.length})
             </h2>
           </div>
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200">
+            <thead className="bg-gray-200 text-gray-800">
               <tr>
                 <th className="px-4 py-2 text-gray-800">Type</th>
                 <th className="px-4 py-2 text-gray-800">Date de début</th>
@@ -495,7 +585,7 @@ export default function SessionPage() {
                 <th className="px-4 py-2 text-gray-800">Actions</th>
               </tr>
             </thead><tbody>
-  {sessions.map((session) => (
+  {filteredSessions.map((session) => (
     <tr
       key={session.id}
       className={`border-b cursor-pointer ${
@@ -503,11 +593,7 @@ export default function SessionPage() {
           ? "bg-gray-200 text-gray-500" // Disabled row styling
           : "bg-white hover:bg-gray-100"
       }`}
-      onClick={() => {
-        if (!session.valid) {
-          router.push(`/dashboard?sessionId=${session.id}`);
-        }
-      }}
+      onClick={() => handleSessionClick(session)}
     >
       <td className="px-4 py-2">{session.type}</td>
       <td className="px-4 py-2">{session.startDate}</td>
@@ -573,6 +659,7 @@ export default function SessionPage() {
 </tbody>
 
           </table>
+          </div>
         </div>
       </div>
 
@@ -746,7 +833,7 @@ export default function SessionPage() {
               Annuler
             </Button>
           </DialogClose>
-          <Button type="submit">Enregistrer les modifications</Button>
+          <Button variant="blue" type="submit">Enregistrer les modifications</Button>
         </div>
       </form>
     </DialogContent>
@@ -767,9 +854,9 @@ export default function SessionPage() {
             <AlertDialogCancel onClick={closeDeleteModal}>
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSession}>
+            <Button variant="destructive"  onClick={handleDeleteSession}>
               Supprimer
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
