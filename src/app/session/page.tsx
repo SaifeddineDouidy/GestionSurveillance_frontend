@@ -123,6 +123,7 @@ export default function SessionPage() {
       afternoonEnd2: "18:00",
     });
   };
+  
 
   const openEditModal = (session: Session) => {
     setEditSession(session);

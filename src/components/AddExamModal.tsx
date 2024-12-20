@@ -99,7 +99,7 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   const [options, setOptions] = useState<Option[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [locaux, setLocaux] = useState<Local[]>([]);
-  
+
   // Initialize session state
   const [newSession, setNewSession] = useState<SessionState>({
     departement: "",
@@ -208,6 +208,8 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
       selectLocauxAutomatically();
     }
   }, [newSession.option, newSession.isManuelle]);
+
+  
 
   // Modified form submission
   const handleAddSession = async (event: React.FormEvent) => {

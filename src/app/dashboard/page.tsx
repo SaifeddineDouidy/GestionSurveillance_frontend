@@ -156,7 +156,7 @@ export default function DashboardPage() {
           },
         },
       }}
-      height={200}
+      height={230}
     />
   ) : (
     <p className="text-gray-500 text-center">No data available for the chart.</p>
