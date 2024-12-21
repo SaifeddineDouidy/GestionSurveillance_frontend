@@ -63,7 +63,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               href="/get-started"
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
-              Get Started
+              Plus
             </Link>
 
             {/* User Menu */}
@@ -138,7 +138,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 href="/get-started"
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
               >
-                Get Started
+               Plus
               </Link>
               <button
                 onClick={toggleUserMenu}
