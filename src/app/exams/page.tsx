@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Clock, Calendar } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
 interface TimeSlot {
@@ -17,27 +16,29 @@ interface SessionData {
 
 const ExamSchedule = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
-  const pathname = usePathname();
-  const router = useRouter();
+  const [examCounts, setExamCounts] = useState<Record<string, number>>({});
 
-  // Navigates to a given time slot page
-  const navigateToTimeSlot = (formattedDate: string, startTime: string, endTime: string) => {
-    const url = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
-    // Using window.location for navigation
-    window.location.href = url;
+  const fetchExamCounts = async (date: string, time: string) => {
+    try {
+      const [startTime, endTime] = time.split(" - ");
+      const formattedStart = `${startTime}:00`;
+      const formattedEnd = `${endTime}:00`;
+
+      const response = await fetch(
+        `http://localhost:8088/api/exams/search?date=${date}&startTime=${formattedStart}&endTime=${formattedEnd}`
+      );
+      const data = await response.json();
+      return data.length; // Assuming `data` is an array of exams
+    } catch (error) {
+      console.error("Error fetching exam counts:", error);
+      return 0;
+    }
   };
 
   const handleCellClick = (day: Date, timeSlot: TimeSlot) => {
     const [startTime, endTime] = timeSlot.time.split(" - ");
     const formattedDate = day.toISOString().split("T")[0];
-
-    try {
-      navigateToTimeSlot(formattedDate, startTime, endTime);
-    } catch (err) {
-      console.error("Navigation error:", err);
-      // Fallback
-      window.location.href = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
-    }
+    window.location.href = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
   };
 
   useEffect(() => {
@@ -54,6 +55,19 @@ const ExamSchedule = () => {
         );
         const data = await response.json();
         setSessionData(data);
+
+        const counts: Record<string, number> = {};
+        const daysInRange = generateDateRange(data.startDate, data.endDate);
+
+        for (const day of daysInRange) {
+          for (const slot of data.timeSlots) {
+            const formattedDate = day.toISOString().split("T")[0];
+            const key = `${formattedDate}_${slot.time}`;
+            counts[key] = await fetchExamCounts(formattedDate, slot.time);
+          }
+        }
+
+        setExamCounts(counts);
       } catch (error) {
         console.error("Failed to fetch session data:", error);
       }
@@ -108,15 +122,21 @@ const ExamSchedule = () => {
                     <div>{day.toLocaleDateString()}</div>
                   </div>
                 </td>
-                {sessionData.timeSlots.map((timeSlot: TimeSlot, index: number) => (
-                  <td
-                    key={index}
-                    className="border p-3 cursor-pointer hover:bg-blue-50"
-                    onClick={() => handleCellClick(day, timeSlot)}
-                  >
-                    <div className="text-gray-400">Add exam</div>
-                  </td>
-                ))}
+                {sessionData.timeSlots.map((timeSlot: TimeSlot, index: number) => {
+                  const formattedDate = day.toISOString().split("T")[0];
+                  const key = `${formattedDate}_${timeSlot.time}`;
+                  const count = examCounts[key] || "Add exam";
+
+                  return (
+                    <td
+                      key={index}
+                      className="border p-3 cursor-pointer hover:bg-blue-50"
+                      onClick={() => handleCellClick(day, timeSlot)}
+                    >
+                      <div className="text-center text-blue-600 font-bold">{count}</div>
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

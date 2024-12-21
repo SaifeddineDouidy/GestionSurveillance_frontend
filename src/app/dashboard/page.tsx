@@ -15,6 +15,7 @@ import {
   LinearScale,
 } from "chart.js";
 import Link from "next/link";
+import { Briefcase, ClipboardList, Users } from "lucide-react";
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -126,17 +127,26 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white shadow-lg p-4 rounded-xl">
-            <h2 className="text-gray-800 text-md mb-2">Exams</h2>
-            <p className="text-4xl font-semibold text-indigo-600">{stats.exams}</p>
+          <Card className="bg-white shadow-lg p-4 rounded-xl flex items-center gap-4">
+            <ClipboardList className="text-indigo-600 w-10 h-10" />
+            <div>
+              <h2 className="text-gray-800 text-md mb-2">Exams</h2>
+              <p className="text-4xl font-semibold text-indigo-600">{stats.exams}</p>
+            </div>
           </Card>
-          <Card className="bg-white shadow-lg p-4 rounded-xl">
-            <h2 className="text-gray-800 text-md mb-2">Enseignants</h2>
-            <p className="text-4xl font-semibold text-indigo-600">{stats.enseignants}</p>
+          <Card className="bg-white shadow-lg p-4 rounded-xl flex items-center gap-4">
+            <Users className="text-indigo-600 w-10 h-10" />
+            <div>
+              <h2 className="text-gray-800 text-md mb-2">Enseignants</h2>
+              <p className="text-4xl font-semibold text-indigo-600">{stats.enseignants}</p>
+            </div>
           </Card>
-          <Card className="bg-white shadow-lg p-4 rounded-xl">
-            <h2 className="text-gray-800 text-md mb-2">Departments</h2>
-            <p className="text-4xl font-semibold text-indigo-600">{stats.departments}</p>
+          <Card className="bg-white shadow-lg p-4 rounded-xl flex items-center gap-4">
+            <Briefcase className="text-indigo-600 w-10 h-10" />
+            <div>
+              <h2 className="text-gray-800 text-md mb-2">Departments</h2>
+              <p className="text-4xl font-semibold text-indigo-600">{stats.departments}</p>
+            </div>
           </Card>
         </div>
 

@@ -1,9 +1,8 @@
-"use client";
+"use client"
 import Navbar from "@/components/Navbar";
 import React, { useState, useEffect, useRef } from "react";
-import { FiArrowRight, FiArrowLeft } from "react-icons/fi"; // Arrow Icons
+import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
 
-// Define TypeScript interfaces for your data structures
 interface Session {
   id: number;
   startDate: string;
@@ -23,23 +22,24 @@ interface Department {
   departmentName: string;
 }
 
-type Enseignant = {
+interface Teacher {
   id: number;
   name: string;
-  email: string;
   dispense: boolean;
-  departmentId: number; // Add departmentId to match with department
-};
+}
+
+type SurveillanceData = Record<string, Record<string, string>>;
 
 const SurveillanceTable: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [Enseignants, setEnseignants] = useState<Enseignant[]>([]); // Teachers array
-  const [departments, setDepartments] = useState<Department[]>([]); // Departments array
-  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null); // Selected department ID
-  const [surveillanceData, setSurveillanceData] = useState<Record<string, Record<string, string>>>({}); // Surveillance data
-  const [loading, setLoading] = useState<boolean>(true); // Spinner loading state
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [surveillanceData, setSurveillanceData] = useState<SurveillanceData>({});
+  const [filteredData, setFilteredData] = useState<SurveillanceData>({});
 
-  const tableRef = useRef<HTMLDivElement>(null); // Ref for horizontal scroll
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Fetch session data
   useEffect(() => {
@@ -62,7 +62,7 @@ const SurveillanceTable: React.FC = () => {
     fetchSession();
   }, []);
 
-  // Fetch departments data
+  // Fetch departments
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -71,8 +71,8 @@ const SurveillanceTable: React.FC = () => {
           throw new Error(`Error fetching departments: ${response.statusText}`);
         }
         const data: Department[] = await response.json();
-        setDepartments(data); // Set the departments state
-        setLoading(false); // Stop the spinner when data is fetched
+        setDepartments(data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching departments:", error);
       }
@@ -84,8 +84,8 @@ const SurveillanceTable: React.FC = () => {
   // Fetch teachers based on the selected department
   useEffect(() => {
     if (selectedDepartment !== null) {
-      const fetchTeachersByDepartment = async () => {
-        setLoading(true); // Show spinner when fetching teachers
+      const fetchTeachers = async () => {
+        setLoading(true);
         try {
           const response = await fetch(
             `http://localhost:8088/api/departements/${selectedDepartment}/enseignants`
@@ -93,73 +93,54 @@ const SurveillanceTable: React.FC = () => {
           if (!response.ok) {
             throw new Error(`Error fetching teachers: ${response.statusText}`);
           }
-          const data: Enseignant[] = await response.json();
-          // Filter teachers to only those with dispense = false
-          setEnseignants(data.filter((teacher) => !teacher.dispense));
-          console.log("Enseignants fetched:", data.filter((teacher) => !teacher.dispense));
-          setLoading(false); // Stop the spinner when data is fetched
+          const data: Teacher[] = await response.json();
+          setTeachers(data.filter((teacher) => !teacher.dispense));
+          setLoading(false);
         } catch (error) {
           console.error("Error fetching teachers:", error);
         }
       };
 
-      fetchTeachersByDepartment();
+      fetchTeachers();
     }
   }, [selectedDepartment]);
 
-  // Fetch surveillance data
+  // Fetch and filter surveillance data
   useEffect(() => {
-    const fetchSurveillanceData = async () => {
-      const sessionId = localStorage.getItem("sessionId"); // Retrieve sessionId from localStorage
-      if (!sessionId) {
-        console.error("No sessionId found in localStorage.");
-        return;
-      }
+    if (selectedDepartment !== null && session) {
+      const fetchSurveillance = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:8088/api/surveillance/generate?sessionId=${session.id}`
+          );
+          if (!response.ok) {
+            throw new Error(`Error fetching surveillance data: ${response.statusText}`);
+          }
+          const data: SurveillanceData = await response.json();
+          console.log("Fetched Surveillance Data:", data);
 
-      try {
-        const response = await fetch(
-          `http://localhost:8088/api/surveillance/generate?sessionId=${sessionId}`
-        );
-        if (!response.ok) {
-          throw new Error(`Error fetching surveillance data: ${response.status} ${response.statusText}`);
+          // Filter surveillance data to include only teachers in the selected department
+          const filtered = Object.keys(data)
+            .filter((teacherName) => teachers.some((teacher) => teacher.name === teacherName))
+            .reduce((acc, teacherName) => {
+              acc[teacherName] = data[teacherName];
+              return acc;
+            }, {} as SurveillanceData);
+
+          setSurveillanceData(data);
+          setFilteredData(filtered); 
+          console.log(filtered)// Set filtered data for rendering
+        } catch (error) {
+          console.error("Error fetching surveillance data:", error);
         }
-        const data: Record<string, Record<string, string>> = await response.json();
+      };
 
-        console.log("Surveillance data fetched:", data);
-
-        // Filter enseignants based on selectedDepartment
-        const filteredData = Object.keys(data)
-          .filter((enseignantName) => {
-            const enseignant = Enseignants.find(
-              (e) => e.name.trim().toLowerCase() === enseignantName.trim().toLowerCase()
-            );
-
-            if (!enseignant) {
-              console.warn(`No match for enseignant in surveillance data: ${enseignantName}`);
-            }
-
-            return enseignant && enseignant.departmentId === selectedDepartment;
-          })
-          .reduce((acc, key) => {
-            acc[key] = data[key];
-            return acc;
-          }, {} as Record<string, Record<string, string>>);
-
-        console.log("Filtered surveillance data after matching:", filteredData);
-
-        setSurveillanceData(filteredData);
-      } catch (error) {
-        console.error("Error fetching surveillance data:", error);
-      }
-    };
-
-    if (selectedDepartment !== null) {
-      fetchSurveillanceData();
+      fetchSurveillance();
     }
-  }, [selectedDepartment, Enseignants]);
+  }, [selectedDepartment, session, teachers]);
 
   if (loading || !session || !departments.length) {
-    return <div>Loading session, departments, and teachers data...</div>;
+    return <div>Loading...</div>;
   }
 
   // Generate dates dynamically
@@ -177,10 +158,14 @@ const SurveillanceTable: React.FC = () => {
     `${session.afternoonStart1} - ${session.afternoonEnd1}`,
     `${session.afternoonStart2} - ${session.afternoonEnd2}`,
   ];
+  const logAndReturnValue = (teacherName: any, date: any, slot: any, value: any) => {
+    console.log(`Teacher: ${teacherName}, Date: ${date}, Slot: ${slot}, Value: ${value}`);
+    return value;
+  };
 
-  // Function to scroll horizontally
+  // Scroll function
   const scrollTable = (direction: "left" | "right") => {
-    const scrollAmount = 300; // Amount of scroll
+    const scrollAmount = 300;
     if (tableRef.current) {
       tableRef.current.scrollLeft += direction === "right" ? scrollAmount : -scrollAmount;
     }
@@ -209,27 +194,6 @@ const SurveillanceTable: React.FC = () => {
         </select>
       </div>
 
-      {/* Spinner */}
-      {loading && (
-        <div className="text-center my-4">
-          <span>Loading teachers...</span>
-        </div>
-      )}
-
-      {/* Scroll Buttons */}
-      <button
-        onClick={() => scrollTable("left")}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-gray-300"
-      >
-        <FiArrowLeft size={20} />
-      </button>
-      <button
-        onClick={() => scrollTable("right")}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-gray-300"
-      >
-        <FiArrowRight size={20} />
-      </button>
-
       {/* Table */}
       <div ref={tableRef} className="overflow-x-auto">
         <table className="table-auto border-collapse w-full min-w-max">
@@ -254,37 +218,40 @@ const SurveillanceTable: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {Enseignants.map((Enseignant, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-gray-50">
-                <td className="border p-2 w-32 text-center">{Enseignant.name}</td>
-                {dates.map((date) =>
-                  timeSlots.map((slot, colIndex) => {
-                    // Construct the key for surveillanceData
-                    const sessionKey = `${date} ${slot}`;
-                    const assignment =
-                      surveillanceData[Enseignant.name]?.[sessionKey] || ""; // Default to empty string if no data
+  {teachers.map((teacher) => {
+    const normalizedTeacherName = teacher.name.trim();
 
-                    return (
-                      <td
-                        key={`${rowIndex}-${colIndex}`}
-                        className={`border p-2 w-32 text-center ${
-                          assignment === "TT"
-                            ? "bg-yellow-200"
-                            : assignment === "RR"
-                            ? "bg-blue-200"
-                            : assignment.includes("Room")
-                            ? "bg-green-200"
-                            : ""
-                        }`}
-                      >
-                        {assignment || "—"}
-                      </td>
-                    );
-                  })
-                )}
-              </tr>
-            ))}
-          </tbody>
+    return (
+      <tr key={teacher.id} className="hover:bg-gray-50">
+     
+        <td className="border p-2 w-32 text-center">{teacher.name}</td>
+
+        {/* Surveillance Data */}
+        {dates.map((date) =>
+          timeSlots.map((slot) => {
+            // Normalize the slot to match the format in filteredData
+            const normalizedSlot = slot.replace(/\s/g, ""); // Remove all spaces
+            const normalizedKey = `${date} ${normalizedSlot}`; // Combine date and slot
+
+            // Fetch value from filteredData
+            const value = filteredData[normalizedTeacherName]?.[normalizedKey] || "";
+
+
+            return (
+              <td
+                key={`${teacher.id}-${date}-${slot}`}
+                className="border p-2 w-32 text-center"
+              >
+                {value} {/* Display the surveillance value */}
+              </td>
+            );
+          })
+        )}
+      </tr>
+    );
+  })}
+</tbody>
+
         </table>
       </div>
     </div>
