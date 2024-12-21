@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Clock, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 interface TimeSlot {
   time: string;
@@ -97,8 +98,14 @@ const ExamSchedule = () => {
   return (
     <div>
       <Navbar />
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">Exam Schedule</h2>
+      <div className="p-12">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 mt-4">Crenaux des Exams</h1>
+          <Link href="/session" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+            ← Back to Sessions
+          </Link>
+        </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full border-collapse">
           <thead>
             <tr>
@@ -141,6 +148,7 @@ const ExamSchedule = () => {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -59,21 +59,20 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <div className="border-b bg-white">
-      <div className="container mx-auto px-4">
+    <div className="bg-gray-50 p-8">
+      {/* Top Navigation Bar */}
+      <nav className="bg-white border-b border-gray-200 px-12 py-2.5 fixed left-0 right-0 top-0 z-50">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
+          <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            <Link href="/">
-              <Image
-                src="/logo.png"
-                alt="Logo"
-                width={48}
-                height={48}
-                className="h-12 w-auto"
-                priority
-              />
-            </Link>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-14 ml-2 w-auto" // Properly resized logo
+            />
+          </div>
+            
           </div>
 
           {/* Desktop Navigation */}
@@ -88,8 +87,8 @@ export default function Navbar() {
                           navigationMenuTriggerStyle(),
                           "px-4 py-2",
                           pathname === item.href
-                            ? "bg-gray-100 text-gray-900"
-                            : "text-gray-600 hover:text-gray-900"
+                            ? "bg-gray-100 text-md text-gray-900" 
+                            : "text-gray-600 text-md hover:text-gray-900"
                         )}
                       >
                         <FontAwesomeIcon icon={item.icon} className="mr-2" />
@@ -189,7 +188,7 @@ export default function Navbar() {
             </Sheet>
           </div>
         </div>
-      </div>
+      </nav>
     </div>
   );
 }

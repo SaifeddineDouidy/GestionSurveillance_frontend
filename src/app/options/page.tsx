@@ -265,11 +265,12 @@ console.log(editOption)
     return (
       <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="p-14">
-        <div className="mb-6">
-            <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex justify-between items-center mb-8">
-                <div className="space-y-1">
+      <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 p-12">
+    <div className="bg-white rounded-lg shadow p-6">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8">
+        <div className="space-y-1 ">
                     <h1 className="text-2xl font-bold">Options ({filteredOptions.length})</h1>
                     <Link
               href="/session"
@@ -279,18 +280,23 @@ console.log(editOption)
             </Link>
             </div>
             <div className="flex items-center space-x-4">
+            <Button
+                              variant="blue"
+                              onClick={() => setIsUploadModalOpen(true)}
+                            >
+                              Choisir un fichier (.xls ou .csv)
+                            </Button>
+                            <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
+              + Ajouter une nouvelle option
+            </Button></div></div>
+            <div className="flex items-center space-x-4">
                         {/* File Upload Dialog */}
                         <Dialog
                           open={isUploadModalOpen}
                           onOpenChange={setIsUploadModalOpen}
                         >
                           <DialogTrigger asChild>
-                            <Button
-                              variant="blue"
-                              onClick={() => setIsUploadModalOpen(true)}
-                            >
-                              Choisir un fichier (.xls ou .csv)
-                            </Button>
+                            
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
@@ -300,25 +306,11 @@ console.log(editOption)
                                 options
                               </DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="file" className="text-right">
-                                  Fichier
-                                </Label>
-                                <Input
-                                  id="file"
-                                  type="file"
-                                  accept=".xls,.csv"
-                                  className="col-span-3"
-                                  onChange={(e) => {
-                                    const files = e.target.files;
-                                    if (files && files.length > 0) {
-                                      setUploadFile(files[0]);
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </div>
+                            <Input
+      type="file"
+      accept=".csv,.xls,.xlsx"
+      onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
+    />
                             <DialogFooter>
                               <DialogClose asChild>
                                 <Button
@@ -344,10 +336,8 @@ console.log(editOption)
                           </DialogContent>
                         </Dialog>
 
-                      </div>
-                    <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
-              + Ajouter une nouvelle option
-            </Button>
+                      
+                    
                 </div>
 
                 {/* Search Bar */}

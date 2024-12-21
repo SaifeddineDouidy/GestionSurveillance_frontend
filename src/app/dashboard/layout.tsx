@@ -1,17 +1,19 @@
-import React from 'react';
+"use client";
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+import React, { ReactNode } from "react";
+import Navbar from "@/components/Navbar";
+
+
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navbar without extra padding */}
+      <Navbar />
 
-      <div>
-        <div className="container mx-auto">
-          {children} 
-        </div>
+      {/* Main content with the p-14 padding */}
+      <div className="p-12">
+        {children}
       </div>
     </div>
   );
-};
-
-export default Layout;
-
+}

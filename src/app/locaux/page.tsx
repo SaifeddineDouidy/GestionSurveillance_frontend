@@ -226,9 +226,10 @@ export default function LocauxPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <Navbar />
-    <div className="p-14">
-      <div className="mb-6">
+      <Navbar />
+    <div className="bg-gray-50 p-12 ">
+      
+      <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">
@@ -435,21 +436,46 @@ export default function LocauxPage() {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right">Type</Label>
                   <RadioGroup
-                    value={editLocal.type}
-                    onValueChange={(value: any) =>
-                      setEditLocal({ ...editLocal, type: value })
-                    }
-                    className="col-span-3 flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Salle" id="r1" />
-                      <Label htmlFor="r1">Salle</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Amphi" id="r2" />
-                      <Label htmlFor="r2">Amphi</Label>
-                    </div>
-                  </RadioGroup>
+  value={newLocal.type}
+  onValueChange={(value: any) =>
+    setNewLocal({ ...newLocal, type: value })
+  }
+  className="col-span-3 flex space-x-4"
+>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem
+      value="Salle"
+      id="r3"
+      className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+    >
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${
+          newLocal.type === "Salle" ? "bg-blue-500" : "bg-transparent"
+        }`}
+      />
+    </RadioGroupItem>
+    <Label htmlFor="r3" className="cursor-pointer">
+      Salle
+    </Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem
+      value="Amphi"
+      id="r4"
+      className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+    >
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${
+          newLocal.type === "Amphi" ? "bg-blue-500" : "bg-transparent"
+        }`}
+      />
+    </RadioGroupItem>
+    <Label htmlFor="r4" className="cursor-pointer">
+      Amphi
+    </Label>
+  </div>
+</RadioGroup>
+
                 </div>
               </div>
             )}
@@ -506,21 +532,46 @@ export default function LocauxPage() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Type</Label>
                 <RadioGroup
-                  value={newLocal.type}
-                  onValueChange={(value: any) =>
-                    setNewLocal({ ...newLocal, type: value })
-                  }
-                  className="col-span-3 flex space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Salle" id="r3" />
-                    <Label htmlFor="r3">Salle</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Amphi" id="r4" />
-                    <Label htmlFor="r4">Amphi</Label>
-                  </div>
-                </RadioGroup>
+  value={newLocal.type}
+  onValueChange={(value: any) =>
+    setNewLocal({ ...newLocal, type: value })
+  }
+  className="col-span-3 flex space-x-4"
+>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem
+      value="Salle"
+      id="r3"
+      className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+    >
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${
+          newLocal.type === "Salle" ? "bg-blue-500" : "bg-transparent"
+        }`}
+      />
+    </RadioGroupItem>
+    <Label htmlFor="r3" className="cursor-pointer">
+      Salle
+    </Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem
+      value="Amphi"
+      id="r4"
+      className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+    >
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${
+          newLocal.type === "Amphi" ? "bg-blue-500" : "bg-transparent"
+        }`}
+      />
+    </RadioGroupItem>
+    <Label htmlFor="r4" className="cursor-pointer">
+      Amphi
+    </Label>
+  </div>
+</RadioGroup>
+
               </div>
             </div>
             <DialogFooter>

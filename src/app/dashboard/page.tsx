@@ -116,8 +116,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="p-14">
+      
+      <div className="px-14">
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Dashboard</h1>
           <Link href="/session" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
@@ -166,7 +166,7 @@ export default function DashboardPage() {
           },
         },
       }}
-      height={230}
+      height={220}
     />
   ) : (
     <p className="text-gray-500 text-center">No data available for the chart.</p>
