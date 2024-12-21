@@ -471,22 +471,51 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="isManuelle" className="text-right">Mode</Label>
             <RadioGroup
-              value={newSession.isManuelle ? "manuelle" : "automatique"}
-              onValueChange={(value) => {
-                setNewSession({
-                  ...newSession,
-                  isManuelle: value === "manuelle",
-                  locaux: [],
-                });
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <RadioGroupItem value="automatique" id="automatique" />
-                <Label htmlFor="automatique">Automatique</Label>
-                <RadioGroupItem value="manuelle" id="manuelle" />
-                <Label htmlFor="manuelle">Manuelle</Label>
-              </div>
-            </RadioGroup>
+  value={newSession.isManuelle ? "manuelle" : "automatique"}
+  onValueChange={(value) => {
+    setNewSession({
+      ...newSession,
+      isManuelle: value === "manuelle",
+      locaux: [],
+    });
+  }}
+>
+  <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
+      <RadioGroupItem
+        value="automatique"
+        id="automatique"
+        className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+      >
+        <div
+          className={`w-2.5 h-2.5 rounded-full ${
+            newSession.isManuelle ? "bg-transparent" : "bg-blue-500"
+          }`}
+        />
+      </RadioGroupItem>
+      <Label htmlFor="automatique" className="cursor-pointer">
+        Automatique
+      </Label>
+    </div>
+    <div className="flex items-center gap-2">
+      <RadioGroupItem
+        value="manuelle"
+        id="manuelle"
+        className="w-5 h-5 border-2 border-blue-500 rounded-full flex items-center justify-center"
+      >
+        <div
+          className={`w-2.5 h-2.5 rounded-full ${
+            newSession.isManuelle ? "bg-blue-500" : "bg-transparent"
+          }`}
+        />
+      </RadioGroupItem>
+      <Label htmlFor="manuelle" className="cursor-pointer">
+        Manuelle
+      </Label>
+    </div>
+  </div>
+</RadioGroup>
+
           </div>
 
           {/* Locaux Select */}

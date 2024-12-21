@@ -1,5 +1,6 @@
 "use client"
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
 
@@ -38,8 +39,8 @@ const SurveillanceTable: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [surveillanceData, setSurveillanceData] = useState<SurveillanceData>({});
   const [filteredData, setFilteredData] = useState<SurveillanceData>({});
-
   const tableRef = useRef<HTMLDivElement>(null);
+  const [selectedProfessor, setSelectedProfessor] = useState<Teacher | null>(null);
 
   // Fetch session data
   useEffect(() => {
@@ -158,6 +159,78 @@ const SurveillanceTable: React.FC = () => {
     `${session.afternoonStart1} - ${session.afternoonEnd1}`,
     `${session.afternoonStart2} - ${session.afternoonEnd2}`,
   ];
+  const renderProfessorTable = () => {
+    const normalizedProfessorName = selectedProfessor?.name.trim() || "";
+  
+    return (
+      <div>
+        <button
+          onClick={() => setSelectedProfessor(null)}
+          className="text-blue-500 underline mb-4"
+        >
+          Back to Department Table
+        </button>
+        <h2 className="text-xl font-bold text-center mb-4">
+          Surveillance for {selectedProfessor?.name}
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="table-auto border-collapse w-full">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border p-2 text-center w-32">Dates</th>
+                {timeSlots.map((slot) => (
+                  <th key={slot} className="border p-2 text-center bg-gray-50 w-32">
+                    {slot}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dates.map((date) => (
+                <tr key={date}>
+                  <td className="border p-2 text-center w-32">{date}</td>
+                  {timeSlots.map((slot) => {
+                    const normalizedSlot = slot.replace(/\s/g, "");
+                    const normalizedKey = `${date} ${normalizedSlot}`;
+                    let value =
+                      filteredData[normalizedProfessorName]?.[normalizedKey] || "";
+  
+                    // Handle half-day reservists
+                    if (!value) {
+                      const morningKey = `${date} Morning (08:00-12:30)`;
+                      const afternoonKey = `${date} Afternoon (13:30-17:30)`;
+  
+                      if (
+                        filteredData[normalizedProfessorName]?.[morningKey] &&
+                        slot.startsWith("08:00")
+                      ) {
+                        value = "RR";
+                      } else if (
+                        filteredData[normalizedProfessorName]?.[afternoonKey] &&
+                        slot.startsWith("13:30")
+                      ) {
+                        value = "RR";
+                      }
+                    }
+  
+                    return (
+                      <td
+                        key={`${date}-${slot}`}
+                        className="border p-2 text-center w-32"
+                      >
+                        {value}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+  
   const logAndReturnValue = (teacherName: any, date: any, slot: any, value: any) => {
     console.log(`Teacher: ${teacherName}, Date: ${date}, Slot: ${slot}, Value: ${value}`);
     return value;
@@ -172,12 +245,31 @@ const SurveillanceTable: React.FC = () => {
   };
 
   return (
-    <div className="p-4 relative">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <h1 className="text-xl font-bold text-center mb-4">Surveillances par départements</h1>
+
+      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50 p-12">
+      <div className="flex justify-between mb-8">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold mt-2 mb-4">Surveillances par départements </h1>
+                    <Link
+              href="/session"
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ← Back to Session
+            </Link></div>
+                    
+                </div>
+
 
       {/* Department Dropdown */}
-      <div className="mb-4 text-center">
+      {selectedProfessor ? (
+          renderProfessorTable()
+        ) : (
+          <>
+
+      <div className="mb-4 ">
         <select
           className="border p-2 rounded"
           onChange={(e) => setSelectedDepartment(Number(e.target.value))}
@@ -196,6 +288,7 @@ const SurveillanceTable: React.FC = () => {
 
       {/* Table */}
       <div ref={tableRef} className="overflow-x-auto">
+      
         <table className="table-auto border-collapse w-full min-w-max">
           <thead>
             <tr className="bg-gray-100">
@@ -217,32 +310,55 @@ const SurveillanceTable: React.FC = () => {
               )}
             </tr>
           </thead>
+
           <tbody>
   {teachers.map((teacher) => {
     const normalizedTeacherName = teacher.name.trim();
 
     return (
       <tr key={teacher.id} className="hover:bg-gray-50">
-     
-        <td className="border p-2 w-32 text-center">{teacher.name}</td>
+        {/* Teacher Name */}
+        <td
+                        className="border p-2 w-32 text-center text-blue-500 cursor-pointer underline"
+                        onClick={() => setSelectedProfessor(teacher)}
+                      >
+                        {teacher.name}
+                      </td>
 
         {/* Surveillance Data */}
         {dates.map((date) =>
           timeSlots.map((slot) => {
-            // Normalize the slot to match the format in filteredData
-            const normalizedSlot = slot.replace(/\s/g, ""); // Remove all spaces
+            const normalizedSlot = slot.replace(/\s/g, ""); // Remove spaces from slot
             const normalizedKey = `${date} ${normalizedSlot}`; // Combine date and slot
 
-            // Fetch value from filteredData
-            const value = filteredData[normalizedTeacherName]?.[normalizedKey] || "";
+            // Handle reservists
+            let value = filteredData[normalizedTeacherName]?.[normalizedKey] || "";
 
+            // Check for half-day reservists (e.g., Morning or Afternoon)
+            if (!value) {
+              const morningKey = `${date} Morning (08:00-12:30)`;
+              const afternoonKey = `${date} Afternoon (13:30-17:30)`;
+
+              // If the reservist spans a morning or afternoon, assign "RR" to all relevant slots
+              if (
+                filteredData[normalizedTeacherName]?.[morningKey] &&
+                slot.startsWith("08:00")
+              ) {
+                value = "RR";
+              } else if (
+                filteredData[normalizedTeacherName]?.[afternoonKey] &&
+                slot.startsWith("13:30")
+              ) {
+                value = "RR";
+              }
+            }
 
             return (
               <td
                 key={`${teacher.id}-${date}-${slot}`}
                 className="border p-2 w-32 text-center"
               >
-                {value} {/* Display the surveillance value */}
+                {value}
               </td>
             );
           })
@@ -252,7 +368,13 @@ const SurveillanceTable: React.FC = () => {
   })}
 </tbody>
 
+
         </table>
+        
+      </div>
+      </>
+    )}
+      </div>
       </div>
     </div>
   );
