@@ -211,8 +211,11 @@ console.log(editOption)
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gray-50 p-8">
-            <Navbar />
+        <Navbar />
+      <div className="min-h-screen bg-gray-50">
+        
+        <div className="bg-gray-50 p-12">
+            
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">
                 <div className="space-y-1">
@@ -475,6 +478,7 @@ console.log(editOption)
           </DialogContent>
         </Dialog>
             </div>
+        </div>
         </div>
         </div>
     );

@@ -8,7 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -22,6 +22,8 @@ const DepartmentsPage = () => {
     null
   );
   const [departmentToDelete, setDepartmentToDelete] = useState<number | null>(null);
+  const [isUploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   // Add state for search query
 const [searchQuery, setSearchQuery] = useState("");
 
@@ -59,6 +61,46 @@ const navigateToEnseignants = (departmentId: any) => {
       console.error("Error fetching departments:", error);
     }
   };
+
+  // Add file upload handler
+const handleFileUpload = async () => {
+    if (!uploadFile) {
+      alert("Veuillez sélectionner un fichier");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", uploadFile); // Add the selected file to the form data
+  
+    try {
+      // Send the file to the backend API
+      const response = await fetch("http://localhost:8088/api/departements/upload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const responseData = await response.text(); // Parse the response if needed
+        console.log("Upload succeeded:", responseData);
+        alert("Fichier téléchargé avec succès!");
+  
+        // Refetch the departments to update the UI
+        await fetchDepartments();
+  
+        // Reset state and close modal (if applicable)
+        setUploadFile(null);
+        setUploadModalOpen(false);
+      } else {
+        const errorMessage = await response.text();
+        console.error("Error response:", errorMessage);
+        alert(`Erreur lors de l'importation : ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de l'importation du fichier:", error);
+      alert("Erreur réseau lors de l'importation du fichier");
+    }
+  };
+  
 
   // Add Department
   const handleAddDepartment = async () => {
@@ -138,12 +180,13 @@ const navigateToEnseignants = (departmentId: any) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <Navbar />
-      <div className="bg-white rounded-lg shadow p-6">
+        <Navbar />
+        <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 p-12">
+    <div className="bg-white rounded-lg shadow p-6">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-4">
-        <div className="space-y-1">
+        <div className="flex justify-between items-center mb-8">
+        <div className="space-y-1 ">
           <h1 className="text-2xl font-bold">Departements ({departments.length})</h1>
           <Link
               href="/session"
@@ -151,17 +194,33 @@ const navigateToEnseignants = (departmentId: any) => {
             >
               ← Back to Session
             </Link></div>
-          <div className="flex space-x-2">
-            <Button variant="blue" onClick={() => alert("File upload placeholder")}>
-              Choisir un fichier (.xls ou .csv)
-            </Button>
-            <Button variant="blue" onClick={() => setAddModalOpen(true)}>
+          <div className="flex items-center space-x-4">
+          <Button variant="blue" onClick={() => setUploadModalOpen(true)}>Choisir un fichier (.xls ou .csv)</Button>
+          <Button variant="blue" onClick={() => setAddModalOpen(true)}>
               + Ajouter un nouveau departement
             </Button>
-          </div>
+            </div>
         </div>
 
-        {/* Search Input */}
+<Dialog open={isUploadModalOpen} onOpenChange={setUploadModalOpen}>
+  <DialogContent>
+  <DialogTitle>Importer des departements</DialogTitle>
+                  <DialogDescription>
+                    Sélectionnez un fichier .xls ou .csv pour importer des
+                    departements avec leurs enseignants
+                  </DialogDescription>
+    <Input
+      type="file"
+      accept=".csv,.xls,.xlsx"
+      onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
+    />
+    
+    <Button variant="blue" onClick={handleFileUpload} disabled={!uploadFile}>
+      Ajouter
+    </Button>
+  </DialogContent>
+</Dialog>
+            
 <div className="mb-4">
   <Input
     placeholder="Rechercher par nom du département"
@@ -267,6 +326,7 @@ const navigateToEnseignants = (departmentId: any) => {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
     </div>
   );

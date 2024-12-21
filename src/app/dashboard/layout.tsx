@@ -1,19 +1,19 @@
-import React from 'react';
+"use client";
 
-// The layout component will wrap the content of your dashboard page
-const Layout = ({ children }: { children: React.ReactNode }) => {
+import React, { ReactNode } from "react";
+import Navbar from "@/components/Navbar";
+
+
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navbar without extra padding */}
+      <Navbar />
 
-      {/* Main content area */}
-      <div> {/* Padding to avoid content under the fixed Navbar */}
-        <div className="container mx-auto">
-          {children} {/* This will render the content passed as children */}
-        </div>
+      {/* Main content with the p-14 padding */}
+      <div className="p-12">
+        {children}
       </div>
     </div>
   );
-};
-
-export default Layout;
-
+}

@@ -128,8 +128,9 @@ const filteredEnseignants = enseignants.filter((ens) =>
 
   return (
     <div className="min-h-screen bg-gray-50">
+        <Navbar />
     <div className="p-8 bg-gray-50 min-h-screen">
-      <Navbar />
+      
       <div className="bg-white rounded-lg shadow p-6">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">

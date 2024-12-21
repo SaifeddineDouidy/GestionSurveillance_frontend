@@ -32,6 +32,7 @@ const ExamSlot = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   
   const [showExamModal, setShowExamModal] = useState(false);
   
@@ -43,6 +44,15 @@ const ExamSlot = () => {
       fetchExams();
     }
   }, [date, startTime, endTime]);
+
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem("sessionId");
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+    } else {
+      console.error("No sessionId found in localStorage.");
+    }
+  }, []);
 
   
   const fetchExams = async () => {
