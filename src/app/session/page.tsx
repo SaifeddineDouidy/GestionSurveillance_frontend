@@ -197,7 +197,6 @@ export default function SessionPage() {
   const handleEditSession = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editSession) return;
-
     try {
       const response = await fetch(
         `http://localhost:8088/api/session/${editSession.id}`,

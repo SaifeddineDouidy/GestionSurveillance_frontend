@@ -172,8 +172,10 @@ const SurveillanceTable: React.FC = () => {
   };
 
   return (
-    <div className="p-4 relative">
-      <Navbar />
+    <div className="min-h-screen bg-white-50">
+    <Navbar />
+    <div className="p-14">
+      <div className="mb-6">
       <h1 className="text-xl font-bold text-center mb-4">Surveillances par départements</h1>
 
       {/* Department Dropdown */}
@@ -254,6 +256,8 @@ const SurveillanceTable: React.FC = () => {
 
         </table>
       </div>
+    </div>
+    </div>
     </div>
   );
 };

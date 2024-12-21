@@ -44,6 +44,8 @@ export default function OptionsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [optionToDelete, setOptionToDelete] = useState<number | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   
   // Initialize with proper types
   const [newOption, setNewOption] = useState<NewOption>({
@@ -208,11 +210,63 @@ console.log(editOption)
     }
   };
 
+  const refetchOptions = async () => {
+    try {
+      const response = await fetch("http://localhost:8088/api/options");
+      if (response.ok) {
+        const optionsData = await response.json();
+        setOptions(optionsData);
+      } else {
+        console.error("Failed to fetch options:", response.status);
+        alert("Erreur lors de la récupération des options.");
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de la récupération des options:", error);
+      alert("Erreur réseau lors de la récupération des options.");
+    }
+  };
+  // Add file upload handler
+  const handleFileUpload = async () => {
+    if (!uploadFile) {
+      alert("Veuillez sélectionner un fichier");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", uploadFile);
+
+    try {
+      const response = await fetch("http://localhost:8088/api/options/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log("Upload succeeded:", responseData);
+        alert("Fichier téléchargé avec succès!");
+        await refetchOptions();
+
+        // Reset state or close modal if necessary
+        setUploadFile(null);
+        setIsUploadModalOpen(false);
+      } else {
+        const errorMessage = await response.text();
+        console.error("Error response:", errorMessage);
+        alert(`Erreur lors de l'importation : ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de l'importation du fichier:", error);
+      alert("Erreur réseau lors de l'importation du fichier");
+    }
+  };
+
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gray-50 p-8">
-            <Navbar />
+      <Navbar />
+      <div className="p-14">
+        <div className="mb-6">
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-8">
                 <div className="space-y-1">
@@ -222,7 +276,75 @@ console.log(editOption)
               className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
             >
               ← Back to Session
-            </Link></div>
+            </Link>
+            </div>
+            <div className="flex items-center space-x-4">
+                        {/* File Upload Dialog */}
+                        <Dialog
+                          open={isUploadModalOpen}
+                          onOpenChange={setIsUploadModalOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="blue"
+                              onClick={() => setIsUploadModalOpen(true)}
+                            >
+                              Choisir un fichier (.xls ou .csv)
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Importer des Options</DialogTitle>
+                              <DialogDescription>
+                                Sélectionnez un fichier .xls ou .csv pour importer des
+                                options
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="file" className="text-right">
+                                  Fichier
+                                </Label>
+                                <Input
+                                  id="file"
+                                  type="file"
+                                  accept=".xls,.csv"
+                                  className="col-span-3"
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    if (files && files.length > 0) {
+                                      setUploadFile(files[0]);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  onClick={() => {
+                                    setUploadFile(null);
+                                    setIsUploadModalOpen(false);
+                                  }}
+                                >
+                                  Annuler
+                                </Button>
+                              </DialogClose>
+                              <Button
+                                type="button"
+                                variant="blue"
+                                onClick={handleFileUpload}
+                                disabled={!uploadFile}
+                              >
+                                Importer
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                      </div>
                     <Button variant="blue" onClick={() => setIsAddModalOpen(true)}>
               + Ajouter une nouvelle option
             </Button>
@@ -475,6 +597,7 @@ console.log(editOption)
           </DialogContent>
         </Dialog>
             </div>
+        </div>
         </div>
         </div>
     );

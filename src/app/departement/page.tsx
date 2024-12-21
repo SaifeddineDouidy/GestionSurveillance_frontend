@@ -138,9 +138,9 @@ const navigateToEnseignants = (departmentId: any) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <div className="p-8 bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="p-14">
+        <div className="mb-6">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
         <div className="space-y-1">
