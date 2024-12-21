@@ -8,7 +8,7 @@ import axios from "axios";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
-
+import Footer from "@/components/Footer";
 
 interface Exam {
   id: number;
@@ -22,7 +22,6 @@ interface Exam {
   locaux: string[];
 }
 
-
 const ExamSlot = () => {
   const searchParams = useSearchParams();
   const date = searchParams.get("date");
@@ -33,9 +32,9 @@ const ExamSlot = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
+
   const [showExamModal, setShowExamModal] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,33 +53,34 @@ const ExamSlot = () => {
     }
   }, []);
 
-  
   const fetchExams = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const formattedStart = startTime?.length === 5 ? `${startTime}:00` : startTime;
+      const formattedStart =
+        startTime?.length === 5 ? `${startTime}:00` : startTime;
       const formattedEnd = endTime?.length === 5 ? `${endTime}:00` : endTime;
 
-      const response = await axios.get("http://localhost:8088/api/exams/search", {
-        params: {
-          date: date,
-          startTime: formattedStart,
-          endTime: formattedEnd,
-        },
-      });
+      const response = await axios.get(
+        "http://localhost:8088/api/exams/search",
+        {
+          params: {
+            date: date,
+            startTime: formattedStart,
+            endTime: formattedEnd,
+          },
+        }
+      );
 
       const transformedExams: Exam[] = response.data.map((exam: any) => ({
         id: exam.id,
         module: exam.module ? exam.module.nomModule : "Unknown",
         enseignant: exam.enseignant ? exam.enseignant.name : "Unknown",
         locaux: exam.locaux ? exam.locaux.map((l: any) => l.nom) : [],
-        
       }));
       console.log("Transformed exams:", transformedExams);
-      
-      
+
       setExams(transformedExams);
     } catch (error: any) {
       console.error("Error fetching exams:", error);
@@ -97,11 +97,11 @@ const ExamSlot = () => {
       setShowEditModal(true);
     }
   };
-  
+
   const handleDelete = async (examId: number) => {
     const confirmDelete = confirm("Are you sure you want to delete this exam?");
     if (!confirmDelete) return;
-  
+
     try {
       await axios.delete(`http://localhost:8088/api/exams/${examId}`);
       alert("Exam deleted successfully");
@@ -111,10 +111,8 @@ const ExamSlot = () => {
       alert("Failed to delete exam. Please try again.");
     }
   };
-  
 
   const handleExamAdded = () => {
-    
     setShowExamModal(false);
     fetchExams();
   };
@@ -186,7 +184,6 @@ const ExamSlot = () => {
                     <td className="px-4 py-2">{exam.locaux.join(", ")}</td>
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
-                        
                         <button
                           className="text-red-500 hover:text-red-600"
                           onClick={() => handleDelete(exam.id)}
@@ -216,10 +213,8 @@ const ExamSlot = () => {
             onExamAdded={handleExamAdded}
           />
         )}
-
-
-
       </div>
+      <Footer />
     </div>
   );
 };

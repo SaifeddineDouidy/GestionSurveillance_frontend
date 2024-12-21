@@ -69,7 +69,7 @@ export default function Navbar() {
             <img
               src="/logo.png"
               alt="Logo"
-              className="h-14 ml-2 w-auto" // Properly resized logo
+              className="h-14 ml-14 w-auto" // Properly resized logo
             />
           </div>
             

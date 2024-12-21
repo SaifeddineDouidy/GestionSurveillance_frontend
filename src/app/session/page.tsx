@@ -62,12 +62,11 @@ type Session = {
 };
 
 export default function SessionPage() {
-
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  
-    const toggleUserMenu = () => {
-      setIsUserMenuOpen(!isUserMenuOpen);
-    };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -89,10 +88,11 @@ export default function SessionPage() {
     afternoonEnd2: "18:00",
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const filteredSessions = sessions.filter((session) =>
-    session.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    session.startDate.includes(searchQuery) ||
-    session.endDate.includes(searchQuery)
+  const filteredSessions = sessions.filter(
+    (session) =>
+      session.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.startDate.includes(searchQuery) ||
+      session.endDate.includes(searchQuery)
   );
   const router = useRouter();
 
@@ -100,7 +100,7 @@ export default function SessionPage() {
   const handleSessionClick = (session: Session) => {
     if (!session.valid) {
       // Store the session in localStorage
-      localStorage.setItem('sessionId', JSON.stringify(session.id));
+      localStorage.setItem("sessionId", JSON.stringify(session.id));
       // Navigate to dashboard
       router.push(`/dashboard?sessionId=${session.id}`);
     }
@@ -123,7 +123,6 @@ export default function SessionPage() {
       afternoonEnd2: "18:00",
     });
   };
-  
 
   const openEditModal = (session: Session) => {
     setEditSession(session);
@@ -255,7 +254,7 @@ export default function SessionPage() {
     }
   };
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
     setNewSession((prevSession) => ({
       ...prevSession,
@@ -303,66 +302,20 @@ export default function SessionPage() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-     
-     
-      {/* Top Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
-        <div className="container mx-auto flex justify-between items-center">
-          {/* Logo and Brand */}
-          <div className="flex items-center space-x-4">
-          <div className="flex items-center">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="h-14 ml-2 w-auto" // Properly resized logo
-            />
-          </div>
-            
-          </div>
-
-          {/* Navigation Items */}
-          <div className="flex items-center space-x-8">
-
-  <div className="relative">
-    <button
-      onClick={toggleUserMenu}
-      className="flex items-center text-gray-600 hover:text-gray-900"
+    <div
+      className="flex justify-center items-center h-screen"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
-      <FontAwesomeIcon icon={faUser} className="text-lg" />
-    </button>
-    {isUserMenuOpen && (
-      <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg">
-        <ul className="py-1 text-sm text-gray-700">
-          <li>
-            <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">
-              Profile
-            </Link>
-          </li>
-          <li>
-            <Link href="/settings" className="block px-4 py-2 hover:bg-gray-100">
-              Settings
-            </Link>
-          </li>
-          <li>
-            <Link href="/login" className="block px-4 py-2 text-red-600 hover:bg-gray-100">
-              Logout
-            </Link>
-          </li>
-        </ul>
-      </div>
-    )}
-  </div>
-</div>
-</div>
-      </nav>
-     
-     
-
+    
       {/* Content */}
-      <div className="container mx-auto px-4 pt-10">
+      <div className="container mx-auto px-4 ">
         {/* Modal */}
-        <div className="container mx-auto px-4 pt-24">
+        <div className="container mx-auto px-4 ">
           {/* Add Session Button with Dialog */}
           <div className="flex mb-6">
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -548,7 +501,9 @@ export default function SessionPage() {
                         Annuler
                       </Button>
                     </DialogClose>
-                    <Button  variant="blue" type="submit">Enregistrer la session</Button>
+                    <Button variant="blue" type="submit">
+                      Enregistrer la session
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
@@ -556,18 +511,17 @@ export default function SessionPage() {
           </div>
         </div>
 
-
         {/* Sessions Table */}
-        <div className="bg-white shadow-md rounded-lg overflow-hidden p-10">
+        <div className="bg-white shadow-md rounded-lg overflow-hidden p-10 h-1/2">
           {/* Search Bar */}
-<div className="mb-4">
-          <Input
-            placeholder="Rechercher par type, date de début, ou date de fin..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
+          <div className="mb-4">
+            <Input
+              placeholder="Rechercher par type, date de début, ou date de fin..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
 
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-bold text-gray-800">
@@ -575,269 +529,278 @@ export default function SessionPage() {
             </h2>
           </div>
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-800">
-              <tr>
-                <th className="px-4 py-2 text-gray-800">Type</th>
-                <th className="px-4 py-2 text-gray-800">Date de début</th>
-                <th className="px-4 py-2 text-gray-800">Date de fin</th>
-                <th className="px-4 py-2 text-gray-800">Actions</th>
-              </tr>
-            </thead><tbody>
-  {filteredSessions.map((session) => (
-    <tr
-      key={session.id}
-      className={`border-b cursor-pointer ${
-        session.valid
-          ? "bg-gray-200 text-gray-500" // Disabled row styling
-          : "bg-white hover:bg-gray-100"
-      }`}
-      onClick={() => handleSessionClick(session)}
-    >
-      <td className="px-4 py-2">{session.type}</td>
-      <td className="px-4 py-2">{session.startDate}</td>
-      <td className="px-4 py-2">{session.endDate}</td>
-      <td className="px-4 py-2">
-        <div className="flex space-x-3">
-          {/* Edit Icon with reduced opacity when validated */}
-          <FaEdit
-            size={16}
-            className={`${
-              session.valid
-                ? "text-blue-300 cursor-not-allowed"
-                : "text-blue-500 hover:text-blue-700 cursor-pointer"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!session.valid) openEditModal(session);
-            }}
-          />
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-800">
+                <tr>
+                  <th className="px-4 py-2 text-gray-800">Type</th>
+                  <th className="px-4 py-2 text-gray-800">Date de début</th>
+                  <th className="px-4 py-2 text-gray-800">Date de fin</th>
+                  <th className="px-4 py-2 text-gray-800">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSessions.map((session) => (
+                  <tr
+                    key={session.id}
+                    className={`border-b cursor-pointer ${
+                      session.valid
+                        ? "bg-gray-200 text-gray-500" // Disabled row styling
+                        : "bg-white hover:bg-gray-100"
+                    }`}
+                    onClick={() => handleSessionClick(session)}
+                  >
+                    <td className="px-4 py-2">{session.type}</td>
+                    <td className="px-4 py-2">{session.startDate}</td>
+                    <td className="px-4 py-2">{session.endDate}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex space-x-3">
+                        {/* Edit Icon with reduced opacity when validated */}
+                        <FaEdit
+                          size={16}
+                          className={`${
+                            session.valid
+                              ? "text-blue-300 cursor-not-allowed"
+                              : "text-blue-500 hover:text-blue-700 cursor-pointer"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!session.valid) openEditModal(session);
+                          }}
+                        />
 
-          {/* Delete Icon with reduced opacity when validated */}
-          <FaTrash
-            size={16}
-            className={`${
-              session.valid
-                ? "text-red-300 cursor-not-allowed"
-                : "text-red-500 hover:text-red-700 cursor-pointer"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!session.valid) openDeleteModal(session.id);
-            }}
-          />
+                        {/* Delete Icon with reduced opacity when validated */}
+                        <FaTrash
+                          size={16}
+                          className={`${
+                            session.valid
+                              ? "text-red-300 cursor-not-allowed"
+                              : "text-red-500 hover:text-red-700 cursor-pointer"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!session.valid) openDeleteModal(session.id);
+                          }}
+                        />
 
-          {/* Validation Toggle */}
-          {session.valid ? (
-            <div className="flex items-center">
-              <FaCheckCircle
-                size={16}
-                className="text-green-500 hover:text-green-700 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleValidation(session.id, false);
-                }}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <FaTimesCircle
-                size={16}
-                className="text-gray-500 hover:text-gray-700 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleValidation(session.id, true);
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
-          </table>
+                        {/* Validation Toggle */}
+                        {session.valid ? (
+                          <div className="flex items-center">
+                            <FaCheckCircle
+                              size={16}
+                              className="text-green-500 hover:text-green-700 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleValidation(session.id, false);
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <FaTimesCircle
+                              size={16}
+                              className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleValidation(session.id, true);
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
       {/* Edit Modal */}
-{isEditModalOpen && editSession && (
-  <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-    <DialogContent className="sm:max-w-[625px]">
-      <DialogHeader>
-        <DialogTitle>Modifier la session</DialogTitle>
-      </DialogHeader>
+      {isEditModalOpen && editSession && (
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Modifier la session</DialogTitle>
+            </DialogHeader>
 
-      <form onSubmit={handleEditSession} className="grid gap-4 py-4">
-        {/* Session Type */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            Type de session
-          </Label>
-          <Select
-            value={editSession.type}
-            onValueChange={(value) =>
-              setEditSession({ ...editSession, type: value })
-            }
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Sélectionner le type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Normal de printemps">
-                Normal de printemps
-              </SelectItem>
-              <SelectItem value="Normal d'hiver">Normal d'hiver</SelectItem>
-              <SelectItem value="Rattrapage de printemps">
-                Rattrapage de printemps
-              </SelectItem>
-              <SelectItem value="Rattrapage d'hiver">
-                Rattrapage d'hiver
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <form onSubmit={handleEditSession} className="grid gap-4 py-4">
+              {/* Session Type */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="type" className="text-right">
+                  Type de session
+                </Label>
+                <Select
+                  value={editSession.type}
+                  onValueChange={(value) =>
+                    setEditSession({ ...editSession, type: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Sélectionner le type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal de printemps">
+                      Normal de printemps
+                    </SelectItem>
+                    <SelectItem value="Normal d'hiver">
+                      Normal d'hiver
+                    </SelectItem>
+                    <SelectItem value="Rattrapage de printemps">
+                      Rattrapage de printemps
+                    </SelectItem>
+                    <SelectItem value="Rattrapage d'hiver">
+                      Rattrapage d'hiver
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Start Date */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="startDate" className="text-right">
-            Date de début
-          </Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={editSession.startDate}
-            onChange={(e) =>
-              setEditSession({ ...editSession, startDate: e.target.value })
-            }
-            className="col-span-3"
-          />
-        </div>
+              {/* Start Date */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="startDate" className="text-right">
+                  Date de début
+                </Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={editSession.startDate}
+                  onChange={(e) =>
+                    setEditSession({
+                      ...editSession,
+                      startDate: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                />
+              </div>
 
-        {/* End Date */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="endDate" className="text-right">
-            Date de fin
-          </Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={editSession.endDate}
-            onChange={(e) =>
-              setEditSession({ ...editSession, endDate: e.target.value })
-            }
-            className="col-span-3"
-          />
-        </div>
+              {/* End Date */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="endDate" className="text-right">
+                  Date de fin
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={editSession.endDate}
+                  onChange={(e) =>
+                    setEditSession({ ...editSession, endDate: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
 
-        {/* Creneaux Section */}
-        <div className="grid gap-2">
-          <h3 className="text-md font-semibold text-gray-700">Creneaux</h3>
+              {/* Creneaux Section */}
+              <div className="grid gap-2">
+                <h3 className="text-md font-semibold text-gray-700">
+                  Creneaux
+                </h3>
 
-          {/* Morning Creneaux */}
-          <div className="grid grid-cols-4 gap-2">
-            <Input
-              type="time"
-              value={editSession.morningStart1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningStart1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningEnd1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningEnd1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningStart2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningStart2: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.morningEnd2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  morningEnd2: e.target.value,
-                })
-              }
-            />
-          </div>
+                {/* Morning Creneaux */}
+                <div className="grid grid-cols-4 gap-2">
+                  <Input
+                    type="time"
+                    value={editSession.morningStart1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningStart1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningEnd1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningEnd1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningStart2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningStart2: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.morningEnd2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        morningEnd2: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-          {/* Afternoon Creneaux */}
-          <div className="grid grid-cols-4 gap-2">
-            <Input
-              type="time"
-              value={editSession.afternoonStart1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonStart1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonEnd1}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonEnd1: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonStart2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonStart2: e.target.value,
-                })
-              }
-            />
-            <Input
-              type="time"
-              value={editSession.afternoonEnd2}
-              onChange={(e) =>
-                setEditSession({
-                  ...editSession,
-                  afternoonEnd2: e.target.value,
-                })
-              }
-            />
-          </div>
-        </div>
+                {/* Afternoon Creneaux */}
+                <div className="grid grid-cols-4 gap-2">
+                  <Input
+                    type="time"
+                    value={editSession.afternoonStart1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonStart1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonEnd1}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonEnd1: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonStart2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonStart2: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={editSession.afternoonEnd2}
+                    onChange={(e) =>
+                      setEditSession({
+                        ...editSession,
+                        afternoonEnd2: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
 
-        {/* Dialog Footer */}
-        <div className="flex justify-end space-x-2 mt-4">
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-              Annuler
-            </Button>
-          </DialogClose>
-          <Button variant="blue" type="submit">Enregistrer les modifications</Button>
-        </div>
-      </form>
-    </DialogContent>
-  </Dialog>
-)}
+              {/* Dialog Footer */}
+              <div className="flex justify-end space-x-2 mt-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Annuler
+                  </Button>
+                </DialogClose>
+                <Button variant="blue" type="submit">
+                  Enregistrer les modifications
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Confirmation Modal */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={closeDeleteModal}>
@@ -853,7 +816,7 @@ export default function SessionPage() {
             <AlertDialogCancel onClick={closeDeleteModal}>
               Annuler
             </AlertDialogCancel>
-            <Button variant="destructive"  onClick={handleDeleteSession}>
+            <Button variant="destructive" onClick={handleDeleteSession}>
               Supprimer
             </Button>
           </AlertDialogFooter>

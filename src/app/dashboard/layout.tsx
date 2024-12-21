@@ -2,6 +2,7 @@
 
 import React, { ReactNode } from "react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -14,6 +15,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="p-12">
         {children}
       </div>
+      <Footer/>
     </div>
   );
 }

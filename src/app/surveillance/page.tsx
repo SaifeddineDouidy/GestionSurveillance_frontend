@@ -1,8 +1,20 @@
-"use client"
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import React, { useState, useEffect, useRef } from "react";
 import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
+import { Loader2 } from "lucide-react";
+
+// 1. Import shadcn/ui's Select components:
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"; 
 
 interface Session {
   id: number;
@@ -36,6 +48,7 @@ const SurveillanceTable: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [surveillanceData, setSurveillanceData] = useState<SurveillanceData>({});
   const [filteredData, setFilteredData] = useState<SurveillanceData>({});
@@ -54,12 +67,12 @@ const SurveillanceTable: React.FC = () => {
           }
           const data: Session = await response.json();
           setSession(data);
+         
         } catch (error) {
           console.error("Error fetching session:", error);
         }
       }
     };
-
     fetchSession();
   }, []);
 
@@ -78,7 +91,6 @@ const SurveillanceTable: React.FC = () => {
         console.error("Error fetching departments:", error);
       }
     };
-
     fetchDepartments();
   }, []);
 
@@ -95,21 +107,21 @@ const SurveillanceTable: React.FC = () => {
             throw new Error(`Error fetching teachers: ${response.statusText}`);
           }
           const data: Teacher[] = await response.json();
+          // Filter out teachers who have dispense = true
           setTeachers(data.filter((teacher) => !teacher.dispense));
           setLoading(false);
         } catch (error) {
           console.error("Error fetching teachers:", error);
         }
       };
-
       fetchTeachers();
     }
   }, [selectedDepartment]);
 
   // Fetch and filter surveillance data
   useEffect(() => {
-    if (selectedDepartment !== null && session) {
-      const fetchSurveillance = async () => {
+    const fetchSurveillance = async () => {
+      if (selectedDepartment !== null && session) {
         try {
           const response = await fetch(
             `http://localhost:8088/api/surveillance/generate?sessionId=${session.id}`
@@ -118,30 +130,37 @@ const SurveillanceTable: React.FC = () => {
             throw new Error(`Error fetching surveillance data: ${response.statusText}`);
           }
           const data: SurveillanceData = await response.json();
-          console.log("Fetched Surveillance Data:", data);
 
-          // Filter surveillance data to include only teachers in the selected department
+          // Filter surveillance data to only include teachers in the selected department
           const filtered = Object.keys(data)
-            .filter((teacherName) => teachers.some((teacher) => teacher.name === teacherName))
+            .filter((teacherName) =>
+              teachers.some((teacher) => teacher.name === teacherName)
+            )
             .reduce((acc, teacherName) => {
               acc[teacherName] = data[teacherName];
               return acc;
             }, {} as SurveillanceData);
 
           setSurveillanceData(data);
-          setFilteredData(filtered); 
-          console.log(filtered)// Set filtered data for rendering
+          setFilteredData(filtered);
         } catch (error) {
           console.error("Error fetching surveillance data:", error);
         }
-      };
-
-      fetchSurveillance();
-    }
+      }
+    };
+    fetchSurveillance();
   }, [selectedDepartment, session, teachers]);
 
+  // If still loading or missing essential data
   if (loading || !session || !departments.length) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-gradient-to-r from-white to-blue-50">
+        <div className="p-4 bg-white rounded-full shadow-lg">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        </div>
+        <p className="text-gray-700 text-lg font-semibold">Loading data...</p>
+      </div>
+    );
   }
 
   // Generate dates dynamically
@@ -159,16 +178,15 @@ const SurveillanceTable: React.FC = () => {
     `${session.afternoonStart1} - ${session.afternoonEnd1}`,
     `${session.afternoonStart2} - ${session.afternoonEnd2}`,
   ];
-  const logAndReturnValue = (teacherName: any, date: any, slot: any, value: any) => {
-    console.log(`Teacher: ${teacherName}, Date: ${date}, Slot: ${slot}, Value: ${value}`);
-    return value;
-  };
 
-  // Scroll function
+  // Scroll horizontally
   const scrollTable = (direction: "left" | "right") => {
     const scrollAmount = 300;
     if (tableRef.current) {
-      tableRef.current.scrollLeft += direction === "right" ? scrollAmount : -scrollAmount;
+      tableRef.current.scrollBy({
+        left: direction === "right" ? scrollAmount : -scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -176,123 +194,166 @@ const SurveillanceTable: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="min-h-screen bg-gray-50">
-      <div className="bg-gray-50 p-12">
-      <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold mt-2 mb-4">Surveillances par départements </h1>
-                    <Link
-              href="/session"
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-            >
-              ← Back to Session
-            </Link></div>
-                    
-                </div>
+      <div className="p-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Surveillances par départements</h1>
+          <Link
+            href="/session"
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            ← Back to Session
+          </Link>
+        </div>
 
-
-      {/* Department Dropdown */}
-
-      <div className="mb-4 ">
-        <select
-          className="border p-2 rounded"
-          onChange={(e) => setSelectedDepartment(Number(e.target.value))}
-          value={selectedDepartment || ""}
-        >
-          <option value="" disabled>
-            Select Department
-          </option>
-          {departments.map((department) => (
-            <option key={department.id} value={department.id}>
-              {department.departmentName}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Table */}
-      <div ref={tableRef} className="overflow-x-auto">
-      
-        <table className="table-auto border-collapse w-full min-w-max">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2 text-center w-32">Enseignants</th>
-              {dates.map((date) => (
-                <th key={date} colSpan={4} className="border p-2 text-center w-32">
-                  {date}
-                </th>
+        {/* Department selector + Arrows */}
+        <div className="flex items-center justify-between mb-4">
+          <Select
+            onValueChange={(value) => setSelectedDepartment(Number(value))}
+            value={selectedDepartment ? selectedDepartment.toString() : ""}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select Department" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments.map((department) => (
+                <SelectItem
+                  key={department.id}
+                  value={department.id.toString()}
+                >
+                  {department.departmentName}
+                </SelectItem>
               ))}
-            </tr>
-            <tr>
-              <th className="border p-2"></th>
-              {dates.map(() =>
-                timeSlots.map((slot) => (
-                  <th key={slot} className="border p-2 text-center bg-gray-50 w-32">
-                    {slot}
+            </SelectContent>
+          </Select>
+
+          <div className="flex space-x-2">
+            <button
+              onClick={() => scrollTable("left")}
+              className="p-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+            >
+              <FiArrowLeft />
+            </button>
+            <button
+              onClick={() => scrollTable("right")}
+              className="p-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+            >
+              <FiArrowRight />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable table */}
+        <div ref={tableRef} className="overflow-x-auto border border-gray-300 rounded">
+          <table className="table-auto border-collapse w-full min-w-max">
+            {/* Dates row */}
+            <thead>
+              <tr className="bg-gray-100">
+                {/* 
+                  Make this header cell sticky 
+                  so the "Enseignants" label doesn’t scroll horizontally
+                */}
+                <th
+                  className="
+                    sticky left-0 z-10 bg-white 
+                    border p-2 text-center w-32
+                  "
+                >
+                  Enseignants
+                </th>
+                {dates.map((date) => (
+                  <th key={date} colSpan={4} className="border p-2 text-center">
+                    {date}
                   </th>
-                ))
-              )}
-            </tr>
-          </thead>
+                ))}
+              </tr>
+              <tr>
+                {/* 
+                  Empty <th> for alignment of the teacher column 
+                  also must be sticky
+                */}
+                <th
+                  className="
+                    sticky left-0 z-10 bg-white
+                    border p-2 w-32
+                  "
+                />
+                {dates.map(() =>
+                  timeSlots.map((slot) => (
+                    <th key={slot} className="border p-2 text-center bg-gray-50 w-32">
+                      {slot}
+                    </th>
+                  ))
+                )}
+              </tr>
+            </thead>
 
-          <tbody>
-  {teachers.map((teacher) => {
-    const normalizedTeacherName = teacher.name.trim();
+            {/* Teachers & data */}
+            <tbody>
+            {teachers.map((teacher) => {
+  const normalizedTeacherName = teacher.name.trim();
+  return (
+    <tr key={teacher.id} className="hover:bg-gray-50">
+      {/* Teacher name cell */}
+      <td
+        className="
+          sticky left-0 z-10 bg-white
+          border p-2 text-center w-32
+        "
+      >
+        <Link href={`/enseignantEmploi?teacherId=${teacher.id}`}>
+          {teacher.name}
+        </Link>
+      </td>
 
-    return (
-      <tr key={teacher.id} className="hover:bg-gray-50">
-        {/* Teacher Name */}
-        <td className="border p-2 w-32 text-center">{teacher.name}</td>
+      {/* Day/time data */}
+      {dates.map((date) =>
+        timeSlots.map((slot) => {
+          const normalizedSlot = slot.replace(/\s/g, "");
+          const normalizedKey = `${date} ${normalizedSlot}`;
 
-        {/* Surveillance Data */}
-        {dates.map((date) =>
-          timeSlots.map((slot) => {
-            const normalizedSlot = slot.replace(/\s/g, ""); // Remove spaces from slot
-            const normalizedKey = `${date} ${normalizedSlot}`; // Combine date and slot
+          let value = filteredData[normalizedTeacherName]?.[normalizedKey] || "";
 
-            // Handle reservists
-            let value = filteredData[normalizedTeacherName]?.[normalizedKey] || "";
+          // Dynamically parse JSON for Morning or Afternoon RR based on session
+          const morningKey = `${date} Morning (${session.morningStart1}-${session.morningEnd2})`;
+          const afternoonKey = `${date} Afternoon (${session.afternoonStart1}-${session.afternoonEnd2})`;
 
-            // Check for half-day reservists (e.g., Morning or Afternoon)
-            if (!value) {
-              const morningKey = `${date} Morning (08:00-12:30)`;
-              const afternoonKey = `${date} Afternoon (13:30-17:30)`;
+          // If "RR" is found for the morning or afternoon in the JSON
+          const isMorningRR =
+            filteredData[normalizedTeacherName]?.[morningKey] === "RR";
+          const isAfternoonRR =
+            filteredData[normalizedTeacherName]?.[afternoonKey] === "RR";
 
-              // If the reservist spans a morning or afternoon, assign "RR" to all relevant slots
-              if (
-                filteredData[normalizedTeacherName]?.[morningKey] &&
-                slot.startsWith("08:00")
-              ) {
-                value = "RR";
-              } else if (
-                filteredData[normalizedTeacherName]?.[afternoonKey] &&
-                slot.startsWith("13:30")
-              ) {
-                value = "RR";
-              }
-            }
+          // Assign "RR" to all morning slots if morning RR is found
+          if (isMorningRR && (slot.startsWith(session.morningStart1) || slot.startsWith(session.morningStart2))) {
+            value = "RR";
+          }
 
-            return (
-              <td
-                key={`${teacher.id}-${date}-${slot}`}
-                className="border p-2 w-32 text-center"
-              >
-                {value}
-              </td>
-            );
-          })
-        )}
-      </tr>
-    );
-  })}
-</tbody>
+          // Assign "RR" to all afternoon slots if afternoon RR is found
+          if (isAfternoonRR && (slot.startsWith(session.afternoonStart1) || slot.startsWith(session.afternoonStart2))) {
+            value = "RR";
+          }
+
+          return (
+            <td
+              key={`${teacher.id}-${date}-${slot}`}
+              className="border p-2 w-32 text-center"
+            >
+              {value}
+            </td>
+          );
+        })
+      )}
+    </tr>
+  );
+})}
 
 
-        </table>
-        
+            </tbody>
+          </table>
+        </div>
       </div>
-      </div>
-      </div>
+
+      <Footer />
     </div>
   );
 };

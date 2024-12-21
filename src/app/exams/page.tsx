@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Clock, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 interface TimeSlot {
   time: string;
@@ -93,63 +94,76 @@ const ExamSchedule = () => {
 
   if (!sessionData) return <div>Loading...</div>;
 
-  const daysInRange = generateDateRange(sessionData.startDate, sessionData.endDate);
+  const daysInRange = generateDateRange(
+    sessionData.startDate,
+    sessionData.endDate
+  );
 
   return (
     <div>
       <Navbar />
       <div className="p-12">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 mt-4">Crenaux des Exams</h1>
-          <Link href="/session" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 mt-4">
+            Crenaux des Exams
+          </h1>
+          <Link
+            href="/session"
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+          >
             ← Back to Sessions
           </Link>
         </div>
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr>
-              <th className="border p-3 bg-gray-50">Days</th>
-              {sessionData.timeSlots.map((slot: TimeSlot, index: number) => (
-                <th key={index} className="border p-3 bg-gray-50">
-                  <div className="flex items-center justify-center gap-2">
-                    <Clock size={16} />
-                    {slot.time}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {daysInRange.map((day, dayIndex) => (
-              <tr key={dayIndex}>
-                <td className="border p-3 font-medium bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} />
-                    <div>{day.toLocaleDateString()}</div>
-                  </div>
-                </td>
-                {sessionData.timeSlots.map((timeSlot: TimeSlot, index: number) => {
-                  const formattedDate = day.toISOString().split("T")[0];
-                  const key = `${formattedDate}_${timeSlot.time}`;
-                  const count = examCounts[key] || "Add exam";
-
-                  return (
-                    <td
-                      key={index}
-                      className="border p-3 cursor-pointer hover:bg-blue-50"
-                      onClick={() => handleCellClick(day, timeSlot)}
-                    >
-                      <div className="text-center text-blue-600 font-bold">{count}</div>
-                    </td>
-                  );
-                })}
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="border p-3 bg-gray-50">Days</th>
+                {sessionData.timeSlots.map((slot: TimeSlot, index: number) => (
+                  <th key={index} className="border p-3 bg-gray-50">
+                    <div className="flex items-center justify-center gap-2">
+                      <Clock size={16} />
+                      {slot.time}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {daysInRange.map((day, dayIndex) => (
+                <tr key={dayIndex}>
+                  <td className="border p-3 font-medium bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      <div>{day.toLocaleDateString()}</div>
+                    </div>
+                  </td>
+                  {sessionData.timeSlots.map(
+                    (timeSlot: TimeSlot, index: number) => {
+                      const formattedDate = day.toISOString().split("T")[0];
+                      const key = `${formattedDate}_${timeSlot.time}`;
+                      const count = examCounts[key] || "Add exam";
+
+                      return (
+                        <td
+                          key={index}
+                          className="border p-3 cursor-pointer hover:bg-blue-50"
+                          onClick={() => handleCellClick(day, timeSlot)}
+                        >
+                          <div className="text-center text-blue-600 font-bold">
+                            {count}
+                          </div>
+                        </td>
+                      );
+                    }
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

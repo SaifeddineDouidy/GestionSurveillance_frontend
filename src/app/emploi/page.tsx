@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Footer from "@/components/Footer";
 
 type Emploi = {
   id: number;
@@ -54,7 +55,10 @@ export default function EmploiPage() {
           const data: Emploi[] = await response.json();
           setEmplois(data);
         } else {
-          console.error("Failed to fetch emplois. Response status:", response.status);
+          console.error(
+            "Failed to fetch emplois. Response status:",
+            response.status
+          );
         }
       } catch (error) {
         console.error("Failed to fetch emplois:", error);
@@ -80,7 +84,10 @@ export default function EmploiPage() {
         setIsAddModalOpen(false);
         setNewEmploi({ title: "", description: "", date: "" });
       } else {
-        console.error("Failed to add emploi. Response status:", response.status);
+        console.error(
+          "Failed to add emploi. Response status:",
+          response.status
+        );
       }
     } catch (error) {
       console.error("Error adding emploi:", error);
@@ -91,23 +98,31 @@ export default function EmploiPage() {
     if (!editEmploi) return;
 
     try {
-      const response = await fetch(`http://localhost:8088/api/emplois/${editEmploi.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editEmploi),
-      });
+      const response = await fetch(
+        `http://localhost:8088/api/emplois/${editEmploi.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editEmploi),
+        }
+      );
 
       if (response.ok) {
         const updatedEmploi = await response.json();
         setEmplois(
-          emplois.map((emploi) => (emploi.id === updatedEmploi.id ? updatedEmploi : emploi))
+          emplois.map((emploi) =>
+            emploi.id === updatedEmploi.id ? updatedEmploi : emploi
+          )
         );
         setIsEditModalOpen(false);
         setEditEmploi(null);
       } else {
-        console.error("Failed to edit emploi. Response status:", response.status);
+        console.error(
+          "Failed to edit emploi. Response status:",
+          response.status
+        );
       }
     } catch (error) {
       console.error("Error editing emploi:", error);
@@ -118,16 +133,22 @@ export default function EmploiPage() {
     if (emploiToDelete === null) return;
 
     try {
-      const response = await fetch(`http://localhost:8088/api/emplois/${emploiToDelete}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8088/api/emplois/${emploiToDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         setEmplois(emplois.filter((emploi) => emploi.id !== emploiToDelete));
         setIsDeleteModalOpen(false);
         setEmploiToDelete(null);
       } else {
-        console.error("Failed to delete emploi. Response status:", response.status);
+        console.error(
+          "Failed to delete emploi. Response status:",
+          response.status
+        );
       }
     } catch (error) {
       console.error("Error deleting emploi:", error);
@@ -135,6 +156,7 @@ export default function EmploiPage() {
   };
 
   return (
+    <div>
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="bg-gray-50 p-12">
@@ -149,12 +171,9 @@ export default function EmploiPage() {
                 ← Back to Session
               </Link>
             </div>
-            
           </div>
 
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            
-          </div>
+          <div className="bg-white shadow-md rounded-lg overflow-hidden"></div>
         </div>
       </div>
 
@@ -172,7 +191,9 @@ export default function EmploiPage() {
               <Input
                 id="title"
                 value={newEmploi.title}
-                onChange={(e) => setNewEmploi({ ...newEmploi, title: e.target.value })}
+                onChange={(e) =>
+                  setNewEmploi({ ...newEmploi, title: e.target.value })
+                }
                 className="col-span-3"
               />
             </div>
@@ -183,7 +204,9 @@ export default function EmploiPage() {
               <Input
                 id="description"
                 value={newEmploi.description}
-                onChange={(e) => setNewEmploi({ ...newEmploi, description: e.target.value })}
+                onChange={(e) =>
+                  setNewEmploi({ ...newEmploi, description: e.target.value })
+                }
                 className="col-span-3"
               />
             </div>
@@ -195,7 +218,9 @@ export default function EmploiPage() {
                 id="date"
                 type="date"
                 value={newEmploi.date}
-                onChange={(e) => setNewEmploi({ ...newEmploi, date: e.target.value })}
+                onChange={(e) =>
+                  setNewEmploi({ ...newEmploi, date: e.target.value })
+                }
                 className="col-span-3"
               />
             </div>
@@ -226,7 +251,9 @@ export default function EmploiPage() {
                 <Input
                   id="edit-title"
                   value={editEmploi.title}
-                  onChange={(e) => setEditEmploi({ ...editEmploi, title: e.target.value })}
+                  onChange={(e) =>
+                    setEditEmploi({ ...editEmploi, title: e.target.value })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -237,7 +264,12 @@ export default function EmploiPage() {
                 <Input
                   id="edit-description"
                   value={editEmploi.description}
-                  onChange={(e) => setEditEmploi({ ...editEmploi, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditEmploi({
+                      ...editEmploi,
+                      description: e.target.value,
+                    })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -249,7 +281,9 @@ export default function EmploiPage() {
                   id="edit-date"
                   type="date"
                   value={editEmploi.date}
-                  onChange={(e) => setEditEmploi({ ...editEmploi, date: e.target.value })}
+                  onChange={(e) =>
+                    setEditEmploi({ ...editEmploi, date: e.target.value })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -272,7 +306,8 @@ export default function EmploiPage() {
           <DialogHeader>
             <DialogTitle>Êtes-vous sûr ?</DialogTitle>
             <DialogDescription>
-              Voulez-vous vraiment supprimer cet emploi ? Cette action est irréversible.
+              Voulez-vous vraiment supprimer cet emploi ? Cette action est
+              irréversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -285,6 +320,10 @@ export default function EmploiPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      
+    </div>
+    <Footer />
     </div>
   );
 }

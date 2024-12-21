@@ -292,8 +292,9 @@ const AddExamModal: React.FC<AddExamModalProps> = ({
   useEffect(() => {
     const fetchLocaux = async () => {
       try {
-        const response = await axios.get("http://localhost:8088/api/locaux");
+        const response = await axios.get("http://localhost:8088/api/locaux?disponible=true");
         setLocaux(response.data);
+        console.log("local available:", locaux);
       } catch (error) {
         console.error("Error fetching locaux:", error);
       }

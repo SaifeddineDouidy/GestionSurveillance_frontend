@@ -1,8 +1,13 @@
-'use client';
+"use client";
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -31,11 +36,17 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8088/forgotPassword/changePassword/${data.email}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: data.password, repeatPassword: data.confirmPassword }),
-      });
+      const response = await fetch(
+        `http://localhost:8088/forgotPassword/changePassword/${data.email}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password: data.password,
+            repeatPassword: data.confirmPassword,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -43,9 +54,11 @@ export default function ResetPasswordPage() {
       }
 
       setMessage("Password has been reset successfully.");
-      router.push("/login")
+      router.push("/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      );
     } finally {
       setLoading(false);
     }
@@ -55,14 +68,18 @@ export default function ResetPasswordPage() {
     <div className="flex justify-center items-center h-screen bg-gray-50">
       <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <CardHeader>
-          <h1 className="text-2xl font-bold mb-6 text-black text-center">Reset Password</h1>
+          <h1 className="text-2xl font-bold mb-6 text-black text-center">
+            Reset Password
+          </h1>
         </CardHeader>
         <CardContent>
           {message && <p className="text-sm text-green-500 mb-4">{message}</p>}
           {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block font-medium mb-2 text-gray-700">Email Address:</label>
+              <label className="block font-medium mb-2 text-gray-700">
+                Email Address:
+              </label>
               <Input
                 type="email"
                 {...register("email", { required: true })}
@@ -71,7 +88,9 @@ export default function ResetPasswordPage() {
               />
             </div>
             <div>
-              <label className="block font-medium mb-2 text-gray-700">New Password:</label>
+              <label className="block font-medium mb-2 text-gray-700">
+                New Password:
+              </label>
               <Input
                 type="password"
                 {...register("password", { required: true })}
@@ -80,7 +99,9 @@ export default function ResetPasswordPage() {
               />
             </div>
             <div>
-              <label className="block font-medium mb-2 text-gray-700">Confirm Password:</label>
+              <label className="block font-medium mb-2 text-gray-700">
+                Confirm Password:
+              </label>
               <Input
                 type="password"
                 {...register("confirmPassword", { required: true })}
@@ -91,7 +112,9 @@ export default function ResetPasswordPage() {
             <Button
               type="submit"
               disabled={loading}
-              className={`w-full ${loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
+              className={`w-full ${
+                loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               {loading ? "Resetting Password..." : "Reset Password"}
             </Button>
