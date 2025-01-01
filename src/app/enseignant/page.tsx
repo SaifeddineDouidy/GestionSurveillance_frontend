@@ -11,6 +11,8 @@ import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
+
 
 type Enseignant = {
   id: number;
@@ -22,6 +24,12 @@ type Enseignant = {
 const EnseignantsPage = () => {
   const searchParams = useSearchParams();
   const departmentId = searchParams.get("departmentId");
+
+  const router = useRouter();
+
+const handleNavigateToOccupation = (enseignantId: number, enseignantName: string) => {
+  router.push(`/empechement?enseignantId=${enseignantId}&enseignantName=${encodeURIComponent(enseignantName)}`);
+};
 
   const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
   const [currentEnseignant, setCurrentEnseignant] = useState<Enseignant | null>(
@@ -184,7 +192,13 @@ const EnseignantsPage = () => {
               <tbody>
                 {filteredEnseignants.map((enseignant) => (
                   <tr key={enseignant.id} className="hover:bg-gray-100">
-                    <td className="px-4 py-2">{enseignant.name}</td>
+                    <td
+  className="px-4 py-2 text-blue-500 hover:text-blue-700 cursor-pointer"
+  onClick={() => handleNavigateToOccupation(enseignant.id, enseignant.name)}
+>
+  {enseignant.name}
+</td>
+
                     <td className="px-4 py-2">{enseignant.email}</td>
                     <td className="px-4 py-2">
                       {enseignant.dispense ? "Yes" : "No"}

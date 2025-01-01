@@ -28,4 +28,32 @@ body {
   color: #d9534f !important;           /* Red text */
   border-radius: 50%;                  /* Circle shape */
 }
+.bg-gray-200 {
+  background-color: #f0f0f0;
+}
+.text-gray-500 {
+  color: #a0a0a0;
+}
+.bg-red-200 {
+  background-color: #ffe5e5;
+}
+.text-red-700 {
+  color: #c53030;
+}
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+.bg-gray-200 {
+  background-color: #f5f5f5;
+  color: #a0aec0;
+}
+
+.bg-red-200 {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
 
