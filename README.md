@@ -1,163 +1,130 @@
 # Système de Gestion de Surveillance
 
-Un système de gestion de surveillance complet construit avec Next.js, Spring Boot et MySQL.
+Un système complet de gestion de surveillance des examens universitaires développé avec Next.js, Spring Boot et MySQL.
 
-## Aperçu
+## 🔍 Fonctionnalités Principales
 
-Système web moderne pour la gestion de surveillance incluant :
+- 🔐 Authentification & Gestion de mot de passe
+- 📊 Gestion des Sessions Académiques
+- 📈 Tableau de bord interactif 
+- 🏛️ Gestion des Locaux (Salles/Amphis)
+- 👨‍🏫 Administration des Départements & Professeurs
+- 📚 Gestion des Filières & Modules
+- 📝 Organisation des Examens
+- 👥 Planification des Surveillances
 
-- Authentification (Réinitialisation du mot de passe)
-- Gestion des Sessions
-- Tableau de bord dynamique
-- Gestion des Locaux (Salle ou Amphi), des Département (Professeurs), des Options (Modules)
-- Gestion des Exams
-- Gestion de la Surveillance
+## ⚙️ Stack Technique
 
-## Technologies
+- 🖥️ Frontend : Next.js 15 (TypeScript)
+- 🔧 Backend : Spring Boot 3.x
+- 🗄️ Base de données : MySQL 8.x
+- 🔑 Sécurité : JWT
 
-- Frontend : Next.js 15 avec TypeScript
-- Backend : Spring Boot 3.x
-- Base de données : MySQL 8.x
-- Authentification : JWT
+## 📋 Prérequis 
 
-## Prérequis
+- 📦 Node.js (v22.x+)
+- ☕ Java JDK 17+
+- 🗃️ MySQL 8.x
+- 🛠️ Maven
+- 📂 Git
 
-À installer avant de commencer :
-- Node.js (version 22.x ou supérieure)
-- Java JDK 17 ou supérieur
-- MySQL 8.x
-- Maven
-- Git
+## 🚀 Installation
 
-## Installation
+### 1️⃣ Base de Données
 
-### 1. Configuration Base de Données
-
-Option 1 : Télécharger et importer le fichier SQL
 ```bash
 # Créer la base de données
 mysql -u root -p -e "CREATE DATABASE gestion_surveillence"
 
-# Importer le fichier SQL
+# Importer les données
 mysql -u root -p surveillance_db < gestion_surveillence.sql
 ```
 
+### 2️⃣ Backend
 
-### 2. Configuration Backend
 ```bash
-# Cloner le dépôt
-git clone [<url-de-votre-depot>](https://github.com/SaifeddineDouidy/GestionSurveillance_frontend.git)
+# Cloner le projet
+git clone https://github.com/SaifeddineDouidy/GestionSurveillance_backend.git
 
-# Aller dans le répertoire backend
-cd GestionSurveillance_frontend
+cd GestionSurveillance_backend
 
-# Configurer la connexion à la base de données
-# Modifier src/main/resources/application.properties
+# Configuration BDD dans src/main/resources/application.properties
 
-# Construire et lancer l'application Spring Boot
-mvn clean install
-mvn spring-boot:run
+# Lancer le serveur
+mvn clean install && mvn spring-boot:run
 ```
 
-### 3. Configuration Frontend
+### 3️⃣ Frontend
+
 ```bash
-# Aller dans le répertoire frontend
-cd frontend
-
-# Installer les dépendances
+cd GestionSurveillance_frontend
 npm install
-
-# Créer le fichier .env.local
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-
-# Lancer le serveur de développement
 npm run dev
 ```
 
-## Utilisation
+## 💻 Utilisation
 
-1. Accéder à l'application : `http://localhost:3000`
-2. Se connecter avec vos identifiants
-3. Navigation dans le tableau de bord :
-   - Surveillance en direct
-   - Gestion des alertes
-   - Génération de rapports
-   - Configuration système
+1. 🌐 Accès : `http://localhost:3000`
+2. 🔐 Connexion avec vos identifiants
+3. 📱 Navigation :
+   - 📊 Tableau de bord
+   - 📝 Gestion des examens
+   - 👥 Attribution des surveillances
+   - ⚙️ Paramètres
 
-## Développement
+## 🏗️ Architecture
 
-### Structure Backend
+### Backend
+
 ```
 backend/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/surveillance/
-│   │   │       ├── controllers/
-│   │   │       ├── models/
-│   │   │       ├── repositories/
-│   │   │       └── services/
+│   │   │   └── com.example.demo/
+│   │   │       ├── authentication/   # 🔐 Gestion Auth
+│   │   │       ├── controller/       # 🎮 Controllers
+│   │   │       ├── dto/             # 📦 Data Transfer
+│   │   │       ├── exception/        # ⚠️ Exceptions
+│   │   │       ├── model/           # 💾 Entités
+│   │   │       ├── repository/       # 🗄️ Accès Data
+│   │   │       ├── security/         # 🛡️ Sécurité
+│   │   │       ├── service/         # 🔧 Services
+│   │   │       ├── utils/           # 🛠️ Utilitaires
+│   │   │       └── DemoApplication.java
 │   │   └── resources/
 │   │       └── application.properties
-└── pom.xml
+...
 ```
 
-### Structure Frontend
+### Frontend
+
 ```
 frontend/
-├── app/
-├── components/
-├── lib/
-├── public/
-└── package.json
+├── src/
+│   ├── app/            # 📱 Pages
+│   ├── components/     # 🧩 Composants
+│   └── lib/           # 🛠️ Utilitaires
+...
 ```
 
-## Documentation API
+## 📚 API Documentation
 
-Documentation API disponible sur `http://localhost:8080/swagger-ui.html` en mode développement.
+Swagger UI: `http://localhost:8088/swagger-ui.html`
 
-## Variables d'Environnement
+## ⚙️ Configuration
 
-### Backend
-Dans `application.properties` :
+### Backend (`application.properties`)
+
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/surveillance_db
 spring.datasource.username=surveillance_user
 spring.datasource.password=votre_mot_de_passe
 ```
 
-### Frontend
-Dans `.env.local` :
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
+## 🤝 Support
+
+📧 Email : [votre-email]
+🐛 Issues : Via GitHub
+
 ```
-
-## Déploiement Production
-
-1. Build frontend :
-```bash
-npm run build
-```
-
-2. Build backend :
-```bash
-mvn clean package
-```
-
-3. Déployer le fichier JAR généré et le build frontend sur votre serveur de production
-
-## Contribution
-
-1. Forker le dépôt
-2. Créer une branche : `git checkout -b feature/ma-nouvelle-fonctionnalite`
-3. Commiter les changements : `git commit -am 'Ajout d'une fonctionnalité'`
-4. Pousser la branche : `git push origin feature/ma-nouvelle-fonctionnalite`
-5. Créer une Pull Request
-
-## Licence
-
-[Votre licence choisie]
-
-## Support
-
-Pour le support, envoyez un email à [votre-email] ou ouvrez une issue dans le dépôt.
