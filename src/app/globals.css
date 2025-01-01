@@ -11,3 +11,21 @@ body {
     --radius: 0.5rem;
   }
 }
+.react-datepicker-wrapper input {
+  border: 1px solid #ccc; /* Add a visible border */
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.react-datepicker-wrapper input:focus {
+  outline: none;
+  border-color: #007bff; /* Highlight border on focus */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Optional focus shadow */
+}
+.react-datepicker__day--holiday-date {
+  background-color: #ffcccc !important; /* Light red background */
+  color: #d9534f !important;           /* Red text */
+  border-radius: 50%;                  /* Circle shape */
+}
+

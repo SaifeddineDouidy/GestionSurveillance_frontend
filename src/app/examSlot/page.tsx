@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 interface Exam {
   id: number;
@@ -105,7 +106,7 @@ const ExamSlot = () => {
     try {
       await axios.delete(`http://localhost:8088/api/exams/${examId}`);
       alert("Exam deleted successfully");
-      fetchExams(); // Refresh the exam list
+      fetchExams(); 
     } catch (error) {
       console.error("Error deleting exam:", error);
       alert("Failed to delete exam. Please try again.");
@@ -152,16 +153,23 @@ const ExamSlot = () => {
       <Navbar />
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">
-            Exams for {date} ({startTime} - {endTime})
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-4 mt-1">
+            Examens pour {date} ({startTime} - {endTime})
           </h1>
-
+          <Link
+            href="/session"
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            ← Back to Sessions
+          </Link>
+          </div>
           <Button
             variant="default"
             className="bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() => setShowExamModal(true)}
           >
-            + Add Exam
+            + Ajouter Examen
           </Button>
         </div>
 

@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "../globals.css"; 
+
 import {
   FaEdit,
   FaPlus,
@@ -64,6 +68,7 @@ type Session = {
 export default function SessionPage() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  const [holidays, setHolidays] = useState<string[]>([]);
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
@@ -143,6 +148,39 @@ export default function SessionPage() {
     setSessionToDelete(null);
     setIsDeleteModalOpen(false);
   };
+
+  useEffect(() => {
+    async function fetchHolidays() {
+      try {
+        const response = await fetch("http://localhost:8088/api/session/holidays");
+        if (response.ok) {
+          const data = await response.json();
+          setHolidays(data.map((holiday: { date: string }) => holiday.date));
+          console.log(data);
+        } else {
+          console.error("Failed to fetch holidays");
+        }
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    }
+
+    fetchHolidays();
+  }, []);
+
+  const isHoliday = (date: Date) =>
+    holidays.includes(date.toISOString().split("T")[0]);
+
+  const highlightHolidays = (date: Date) => {
+    const formattedDate = new Date(
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    ).toISOString().split("T")[0]; // Ensure UTC date
+    const isHolidayDate = holidays.includes(formattedDate);
+    console.log("Checking date:", formattedDate, "Is Holiday:", isHolidayDate);
+    return isHolidayDate ? "react-datepicker__day--holiday-date" : "";
+};
+
+
 
   // Fetch sessions from backend
   useEffect(() => {
@@ -313,7 +351,8 @@ export default function SessionPage() {
     >
     
       {/* Content */}
-      <div className="container mx-auto px-4 ">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+
         {/* Modal */}
         <div className="container mx-auto px-4 ">
           {/* Add Session Button with Dialog */}
@@ -362,42 +401,67 @@ export default function SessionPage() {
                   </div>
 
                   {/* Start Date */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="startDate" className="text-right">
-                      Date de début
-                    </Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={newSession.startDate}
-                      onChange={(e) =>
-                        setNewSession({
-                          ...newSession,
-                          startDate: e.target.value,
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
+<div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <label htmlFor="startDate" className="text-right">
+          Date de début
+        </label>
+        <DatePicker
+    selected={newSession.startDate ? new Date(newSession.startDate) : null}
+    onChange={(date: Date | null) => {
+        if (date) {
+            const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const selectedDate = utcDate.toISOString().split("T")[0];
+            if (holidays.includes(selectedDate)) {
+                alert("Vous ne pouvez pas sélectionner une date qui est un jour férié.");
+                return;
+            }
+            setNewSession({ ...newSession, startDate: selectedDate });
+        }
+    }}
+    dayClassName={highlightHolidays}
+    className="custom-datepicker-input"
+/>
 
-                  {/* End Date */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="endDate" className="text-right">
-                      Date de fin
-                    </Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={newSession.endDate}
-                      onChange={(e) =>
-                        setNewSession({
-                          ...newSession,
-                          endDate: e.target.value,
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
+
+
+
+
+      </div>
+
+      <div className="grid grid-cols-4 items-center gap-4 mt-4">
+        <label htmlFor="endDate" className="text-right">
+          Date de fin
+        </label>
+        <DatePicker
+  selected={newSession.endDate ? new Date(newSession.endDate) : null}
+  onChange={(date: Date | null) => {
+    if (date) {
+      const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const selectedDate = utcDate.toISOString().split("T")[0];
+      if (holidays.includes(selectedDate)) {
+        alert("Vous ne pouvez pas sélectionner une date qui est un jour férié.");
+        return;
+      }
+      setNewSession({
+        ...newSession,
+        endDate: selectedDate,
+      });
+    }
+  }}
+  dayClassName={(date) => {
+    const formattedDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    ).toISOString().split("T")[0];
+    return holidays.includes(formattedDate) ? "react-datepicker__day--holiday-date" : "";
+  }}
+  className="custom-datepicker-input"
+/>
+
+
+      </div>
+    </div>
+
 
                   {/* Creneaux Section */}
                   <div className="grid gap-2">
@@ -512,107 +576,110 @@ export default function SessionPage() {
         </div>
 
         {/* Sessions Table */}
-        <div className="bg-white shadow-md rounded-lg overflow-hidden p-10 h-1/2">
+        <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 sm:p-6 md:p-8 lg:p-10 h-1/2 md:h-3/4 lg:h-1/2">
+
           {/* Search Bar */}
           <div className="mb-4">
-            <Input
-              placeholder="Rechercher par type, date de début, ou date de fin..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
-          </div>
+  <Input
+    placeholder="Rechercher par type, date de début, ou date de fin..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full"
+  />
+</div>
 
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-bold text-gray-800">
-              Sessions ({sessions.length})
-            </h2>
-          </div>
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="table-auto w-full text-left border-collapse">
-              <thead className="bg-gray-200 text-gray-800">
-                <tr>
-                  <th className="px-4 py-2 text-gray-800">Type</th>
-                  <th className="px-4 py-2 text-gray-800">Date de début</th>
-                  <th className="px-4 py-2 text-gray-800">Date de fin</th>
-                  <th className="px-4 py-2 text-gray-800">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSessions.map((session) => (
-                  <tr
-                    key={session.id}
-                    className={`border-b cursor-pointer ${
-                      session.valid
-                        ? "bg-gray-200 text-gray-500" // Disabled row styling
-                        : "bg-white hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleSessionClick(session)}
-                  >
-                    <td className="px-4 py-2">{session.type}</td>
-                    <td className="px-4 py-2">{session.startDate}</td>
-                    <td className="px-4 py-2">{session.endDate}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex space-x-3">
-                        {/* Edit Icon with reduced opacity when validated */}
-                        <FaEdit
-                          size={16}
-                          className={`${
-                            session.valid
-                              ? "text-blue-300 cursor-not-allowed"
-                              : "text-blue-500 hover:text-blue-700 cursor-pointer"
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!session.valid) openEditModal(session);
-                          }}
-                        />
+<div className="flex justify-between items-center p-4 border-b">
+  <h2 className="text-xl font-bold text-gray-800">
+    Sessions ({sessions.length})
+  </h2>
+</div>
 
-                        {/* Delete Icon with reduced opacity when validated */}
-                        <FaTrash
-                          size={16}
-                          className={`${
-                            session.valid
-                              ? "text-red-300 cursor-not-allowed"
-                              : "text-red-500 hover:text-red-700 cursor-pointer"
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!session.valid) openDeleteModal(session.id);
-                          }}
-                        />
+<div className="bg-white shadow-md rounded-lg overflow-hidden p-4 sm:p-6">
+  <table className="table-auto w-full text-left border-collapse">
+    <thead className="bg-gray-200 text-gray-800">
+      <tr>
+        <th className="px-4 py-2 text-gray-800 text-xs sm:text-sm md:text-base">Type</th>
+        <th className="px-4 py-2 text-gray-800 text-xs sm:text-sm md:text-base">Date de début</th>
+        <th className="px-4 py-2 text-gray-800 text-xs sm:text-sm md:text-base">Date de fin</th>
+        <th className="px-4 py-2 text-gray-800 text-xs sm:text-sm md:text-base">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredSessions.map((session) => (
+        <tr
+          key={session.id}
+          className={`border-b cursor-pointer ${
+            session.valid
+              ? "bg-gray-200 text-gray-500" // Disabled row styling
+              : "bg-white hover:bg-gray-100"
+          }`}
+          onClick={() => handleSessionClick(session)}
+        >
+          <td className="px-4 py-2">{session.type}</td>
+          <td className="px-4 py-2">{session.startDate}</td>
+          <td className="px-4 py-2">{session.endDate}</td>
+          <td className="px-4 py-2">
+            <div className="flex space-x-3">
+              {/* Edit Icon with reduced opacity when validated */}
+              <FaEdit
+                size={16}
+                className={`${
+                  session.valid
+                    ? "text-blue-300 cursor-not-allowed"
+                    : "text-blue-500 hover:text-blue-700 cursor-pointer"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!session.valid) openEditModal(session);
+                }}
+              />
 
-                        {/* Validation Toggle */}
-                        {session.valid ? (
-                          <div className="flex items-center">
-                            <FaCheckCircle
-                              size={16}
-                              className="text-green-500 hover:text-green-700 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleValidation(session.id, false);
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex items-center">
-                            <FaTimesCircle
-                              size={16}
-                              className="text-gray-500 hover:text-gray-700 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleValidation(session.id, true);
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              {/* Delete Icon with reduced opacity when validated */}
+              <FaTrash
+                size={16}
+                className={`${
+                  session.valid
+                    ? "text-red-300 cursor-not-allowed"
+                    : "text-red-500 hover:text-red-700 cursor-pointer"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!session.valid) openDeleteModal(session.id);
+                }}
+              />
+
+              {/* Validation Toggle */}
+              {session.valid ? (
+                <div className="flex items-center">
+                  <FaCheckCircle
+                    size={16}
+                    className="text-green-500 hover:text-green-700 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleValidation(session.id, false);
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <FaTimesCircle
+                    size={16}
+                    className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleValidation(session.id, true);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
         </div>
       </div>
 

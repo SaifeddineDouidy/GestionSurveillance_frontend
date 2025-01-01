@@ -73,16 +73,13 @@ export default function AuthenticationPage() {
 
   return (
     <div
-      className="flex justify-center items-center h-screen"
+      className="flex justify-center items-center h-screen bg-cover bg-center"
       style={{
-        backgroundImage:
-          "linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)), url('/bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundImage: "url('/bg.png')",
       }}
     >
-      <div className="animated-border w-1/3 flex justify-center items-center p-4 rounded-lg">
-        <Card className="w-full max-w-md p-6 bg-white rounded-lg shadow-md align-middle">
+      <div className="animated-border w-11/12 sm:w-3/4 lg:w-1/3 flex justify-center items-center px-4 py-6 rounded-lg">
+        <Card className="w-full bg-white rounded-lg shadow-lg">
           <CardHeader>
             <h1 className="text-2xl font-bold mb-6 text-black text-center">
               Se Connecter
@@ -132,14 +129,13 @@ export default function AuthenticationPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className={`w-full ${
+                className={`w-full px-4 py-2 ${
                   loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                } text-white font-medium rounded-md`}
               >
                 {loading ? "Connexion en cours..." : "Connexion"}
               </Button>
             </form>
-            <br></br>
 
             <div className="text-center mt-4">
               <a

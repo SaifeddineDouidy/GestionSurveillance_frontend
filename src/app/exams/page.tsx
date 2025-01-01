@@ -19,6 +19,36 @@ interface SessionData {
 const ExamSchedule = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [examCounts, setExamCounts] = useState<Record<string, number>>({});
+  const [holidays, setHolidays] = useState<string[]>([]);
+
+
+  useEffect(() => {
+    async function fetchHolidays() {
+      try {
+        const response = await fetch(
+          "http://localhost:8088/api/session/holidays"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setHolidays(data.map((holiday: { date: string }) => holiday.date));
+          console.log(data);
+        } else {
+          console.error("Failed to fetch holidays");
+        }
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    }
+
+    fetchHolidays();
+  }, []);
+
+  const isSunday = (date: Date) => date.getDay() === 0;
+
+  const isHoliday = (date: Date) => {
+    const formattedDate = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    return holidays.includes(formattedDate); // Check if formattedDate exists in holidays
+  };
 
   const fetchExamCounts = async (date: string, time: string) => {
     try {
@@ -38,9 +68,21 @@ const ExamSchedule = () => {
   };
 
   const handleCellClick = (day: Date, timeSlot: TimeSlot) => {
+    if (isSunday(day) || isHoliday(day)) {
+      alert("Exams cannot be scheduled on Sundays or holidays.");
+      return; // Prevent further logic for invalid dates
+    }
+
+    // Proceed with the valid scheduling logic
     const [startTime, endTime] = timeSlot.time.split(" - ");
     const formattedDate = day.toISOString().split("T")[0];
     window.location.href = `/examSlot?date=${formattedDate}&startTime=${startTime}&endTime=${endTime}`;
+  };
+
+  const getCellClass = (date: Date) => {
+    if (isSunday(date)) return "bg-gray-200 text-gray-500 cursor-not-allowed"; // Sunday style
+    if (isHoliday(date)) return "bg-red-200 text-red-700 cursor-not-allowed"; // Holiday style
+    return "cursor-pointer hover:bg-blue-50"; // Default style for valid dates
   };
 
   useEffect(() => {
@@ -130,35 +172,57 @@ const ExamSchedule = () => {
               </tr>
             </thead>
             <tbody>
-              {daysInRange.map((day, dayIndex) => (
-                <tr key={dayIndex}>
-                  <td className="border p-3 font-medium bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} />
-                      <div>{day.toLocaleDateString()}</div>
-                    </div>
-                  </td>
-                  {sessionData.timeSlots.map(
-                    (timeSlot: TimeSlot, index: number) => {
-                      const formattedDate = day.toISOString().split("T")[0];
-                      const key = `${formattedDate}_${timeSlot.time}`;
-                      const count = examCounts[key] || "Add exam";
+              {daysInRange.map((day, dayIndex) => {
+                const isHolidayCell = isHoliday(day);
+                const isSundayCell = isSunday(day);
 
-                      return (
-                        <td
-                          key={index}
-                          className="border p-3 cursor-pointer hover:bg-blue-50"
-                          onClick={() => handleCellClick(day, timeSlot)}
-                        >
-                          <div className="text-center text-blue-600 font-bold">
-                            {count}
-                          </div>
-                        </td>
-                      );
-                    }
-                  )}
-                </tr>
-              ))}
+                return (
+                  <tr key={dayIndex}>
+                    <td className="border p-3 font-medium bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} />
+                        <div>{day.toLocaleDateString()}</div>
+                      </div>
+                    </td>
+
+                    {/* If the day is a holiday, render a single merged cell */}
+                    {isHolidayCell ? (
+                      <td
+                        colSpan={sessionData.timeSlots.length} // Span across all time slots
+                        className="border p-3 text-center bg-red-200 text-red-700 font-bold cursor-not-allowed"
+                      >
+                        Vacance
+                      </td>
+                    ) : (
+                      // Regular time slots
+                      sessionData.timeSlots.map(
+                        (timeSlot: TimeSlot, index: number) => {
+                          const formattedDate = day.toISOString().split("T")[0];
+                          const key = `${formattedDate}_${timeSlot.time}`;
+                          const count = isSundayCell
+                            ? ""
+                            : examCounts[key] || "Ajouter exam";
+
+                          return (
+                            <td
+                              key={index}
+                              className={`text-blue-800 border p-3 text-center font-bold ${getCellClass(
+                                day
+                              )}`}
+                              onClick={() => {
+                                if (!isSundayCell && !isHolidayCell)
+                                  handleCellClick(day, timeSlot);
+                              }}
+                            >
+                              {count}
+                            </td>
+                          );
+                        }
+                      )
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
