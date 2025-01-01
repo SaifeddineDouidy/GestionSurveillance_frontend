@@ -1,36 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Système de Gestion de Surveillance
 
-## Getting Started
+Un système de gestion de surveillance complet construit avec Next.js, Spring Boot et MySQL.
 
-First, run the development server:
+## Aperçu
 
+Système web moderne pour la gestion de surveillance incluant :
+
+- Authentification (Réinitialisation du mot de passe)
+- Gestion des Sessions
+- Tableau de bord dynamique
+- Gestion des Locaux (Salle ou Amphi), des Département (Professeurs), des Options (Modules)
+- Gestion des Exams
+- Gestion de la Surveillance
+
+## Technologies
+
+- Frontend : Next.js 15 avec TypeScript
+- Backend : Spring Boot 3.x
+- Base de données : MySQL 8.x
+- Authentification : JWT
+
+## Prérequis
+
+À installer avant de commencer :
+- Node.js (version 22.x ou supérieure)
+- Java JDK 17 ou supérieur
+- MySQL 8.x
+- Maven
+- Git
+
+## Installation
+
+### 1. Configuration Base de Données
+
+Option 1 : Télécharger et importer le fichier SQL
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Créer la base de données
+mysql -u root -p -e "CREATE DATABASE gestion_surveillence"
+
+# Importer le fichier SQL
+mysql -u root -p surveillance_db < gestion_surveillence.sql
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Configuration Backend
+```bash
+# Cloner le dépôt
+git clone [<url-de-votre-depot>](https://github.com/SaifeddineDouidy/GestionSurveillance_frontend.git)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Aller dans le répertoire backend
+cd GestionSurveillance_frontend
 
-## Learn More
+# Configurer la connexion à la base de données
+# Modifier src/main/resources/application.properties
 
-To learn more about Next.js, take a look at the following resources:
+# Construire et lancer l'application Spring Boot
+mvn clean install
+mvn spring-boot:run
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Configuration Frontend
+```bash
+# Aller dans le répertoire frontend
+cd frontend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Installer les dépendances
+npm install
 
-## Deploy on Vercel
+# Créer le fichier .env.local
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Lancer le serveur de développement
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Utilisation
+
+1. Accéder à l'application : `http://localhost:3000`
+2. Se connecter avec vos identifiants
+3. Navigation dans le tableau de bord :
+   - Surveillance en direct
+   - Gestion des alertes
+   - Génération de rapports
+   - Configuration système
+
+## Développement
+
+### Structure Backend
+```
+backend/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/surveillance/
+│   │   │       ├── controllers/
+│   │   │       ├── models/
+│   │   │       ├── repositories/
+│   │   │       └── services/
+│   │   └── resources/
+│   │       └── application.properties
+└── pom.xml
+```
+
+### Structure Frontend
+```
+frontend/
+├── app/
+├── components/
+├── lib/
+├── public/
+└── package.json
+```
+
+## Documentation API
+
+Documentation API disponible sur `http://localhost:8080/swagger-ui.html` en mode développement.
+
+## Variables d'Environnement
+
+### Backend
+Dans `application.properties` :
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/surveillance_db
+spring.datasource.username=surveillance_user
+spring.datasource.password=votre_mot_de_passe
+```
+
+### Frontend
+Dans `.env.local` :
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
+
+## Déploiement Production
+
+1. Build frontend :
+```bash
+npm run build
+```
+
+2. Build backend :
+```bash
+mvn clean package
+```
+
+3. Déployer le fichier JAR généré et le build frontend sur votre serveur de production
+
+## Contribution
+
+1. Forker le dépôt
+2. Créer une branche : `git checkout -b feature/ma-nouvelle-fonctionnalite`
+3. Commiter les changements : `git commit -am 'Ajout d'une fonctionnalité'`
+4. Pousser la branche : `git push origin feature/ma-nouvelle-fonctionnalite`
+5. Créer une Pull Request
+
+## Licence
+
+[Votre licence choisie]
+
+## Support
+
+Pour le support, envoyez un email à [votre-email] ou ouvrez une issue dans le dépôt.
