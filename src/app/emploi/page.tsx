@@ -167,7 +167,7 @@ const ExamScheduleTable = () => {
                 href="/session"
                 className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >
-                ← Back to Session
+                ← Retour vers Session
               </Link>
             </div>
           </div>

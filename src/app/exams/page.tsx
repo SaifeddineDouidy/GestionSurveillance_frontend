@@ -153,7 +153,7 @@ const ExamSchedule = () => {
             href="/session"
             className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
           >
-            ← Back to Sessions
+            ← Retour vers Sessions
           </Link>
         </div>
         <div className="bg-white shadow-md rounded-lg overflow-hidden">

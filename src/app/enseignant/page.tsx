@@ -161,7 +161,7 @@ const handleNavigateToOccupation = (enseignantId: number, enseignantName: string
                 href="/departement"
                 className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >
-                ← Back to Departements
+                ← Retour vers Departements
               </Link>
             </div>
             <Button variant="blue" onClick={() => setAddModalOpen(true)}>
